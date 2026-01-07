@@ -150,8 +150,14 @@ const Analytics = () => {
   const [error, setError] = useState(null);
   const [summaryStats, setSummaryStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [chartKey, setChartKey] = useState(0);
   const { isDark } = useTheme();
   const { isLoading: pageLoading } = usePageLoading(700, 1300);
+
+  // Force chart re-render on theme change
+  useEffect(() => {
+    setChartKey(prev => prev + 1);
+  }, [isDark]);
 
   // Add error boundary
   useEffect(() => {
@@ -335,10 +341,12 @@ const Analytics = () => {
         }
       }
     },
+    backgroundColor: isDark ? 'rgb(31, 41, 55)' : '#ffffff',
     scales: {
       x: {
         grid: {
-          display: false
+          display: false,
+          color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
         },
         ticks: {
           color: isDark ? '#D1D5DB' : '#6B7280',
@@ -626,7 +634,7 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">30-Day Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+              <div key={`chart-30days-${chartKey}`} className={`h-80 p-4 rounded-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <Line data={createChartData(last30DaysData, true)} options={getChartOptions()} />
               </div>
             </div>
@@ -646,7 +654,7 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">12-Month Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+              <div key={`chart-12months-${chartKey}`} className={`h-80 p-4 rounded-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <Line data={createChartData(last12MonthsData, true)} options={getChartOptions()} />
               </div>
             </div>
@@ -666,7 +674,7 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">10-Year Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+              <div key={`chart-10years-${chartKey}`} className={`h-80 p-4 rounded-lg transition-colors ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <Line data={createChartData(last10YearsData, true)} options={getChartOptions()} />
               </div>
             </div>
