@@ -4,6 +4,9 @@ import { Line, Bar } from 'react-chartjs-2';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Calendar, Download, TrendingUp, Zap, Battery, Sun, Grid, BarChart3 } from 'lucide-react';
+import AdvancedLoadingOverlay from '../components/AdvancedLoadingOverlay';
+import { usePageLoading } from '../hooks/useLoading';
+import { useTheme } from '../hooks/useTheme';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement);
 
@@ -146,30 +149,17 @@ const Analytics = () => {
   const [activeSection, setActiveSection] = useState('30days');
   const [error, setError] = useState(null);
   const [summaryStats, setSummaryStats] = useState({});
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { isDark } = useTheme();
+  const { isLoading: pageLoading } = usePageLoading(700, 1300);
 
   // Add error boundary
   useEffect(() => {
     fetchAllAnalyticsData();
-    
-    // Check initial theme
-    const checkTheme = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    };
-    
-    checkTheme();
-    
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    
-    return () => observer.disconnect();
   }, []);
 
   const fetchAllAnalyticsData = async () => {
+    setLoading(true);
     try {
       const [thirtyDaysResponse, twelveMonthsResponse, tenYearsResponse] = await Promise.all([
         fetch('/api/analytics/data?period=month'),
@@ -202,6 +192,8 @@ const Analytics = () => {
       setError(null);
     } catch (err) {
       setError('Error fetching analytics data: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -276,13 +268,7 @@ const Analytics = () => {
           label: 'Load',
           data: chartData.map(item => safeNumber(item.loadPower)),
           borderColor: '#3B82F6',
-          backgroundColor: (ctx) => {
-            const canvas = ctx.chart.ctx;
-            const gradient = canvas.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
-            return gradient;
-          },
+          backgroundColor: 'rgba(59, 130, 246, 0.3)',
           tension: 0.4,
           fill: true,
           pointRadius: 0,
@@ -293,13 +279,7 @@ const Analytics = () => {
           label: 'Grid',
           data: chartData.map(item => safeNumber(item.gridPower)),
           borderColor: '#EF4444',
-          backgroundColor: (ctx) => {
-            const canvas = ctx.chart.ctx;
-            const gradient = canvas.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
-            gradient.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
-            return gradient;
-          },
+          backgroundColor: 'rgba(239, 68, 68, 0.3)',
           tension: 0.4,
           fill: true,
           pointRadius: 0,
@@ -310,13 +290,7 @@ const Analytics = () => {
           label: 'Solar PV',
           data: chartData.map(item => safeNumber(item.pvPower)),
           borderColor: '#F59E0B',
-          backgroundColor: (ctx) => {
-            const canvas = ctx.chart.ctx;
-            const gradient = canvas.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
-            gradient.addColorStop(1, 'rgba(245, 158, 11, 0.05)');
-            return gradient;
-          },
+          backgroundColor: 'rgba(245, 158, 11, 0.3)',
           tension: 0.4,
           fill: true,
           pointRadius: 0,
@@ -327,7 +301,7 @@ const Analytics = () => {
     };
   };
 
-  const chartOptions = {
+  const getChartOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -341,15 +315,15 @@ const Analytics = () => {
           usePointStyle: true,
           padding: 20,
           font: { size: 12, weight: '500' },
-          color: isDarkMode ? '#D1D5DB' : '#6B7280'
+          color: isDark ? '#D1D5DB' : '#6B7280'
         }
       },
       tooltip: {
         mode: 'index',
         intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
+        backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+        titleColor: isDark ? '#fff' : '#000',
+        bodyColor: isDark ? '#fff' : '#000',
         borderColor: '#DEAF0B',
         borderWidth: 1,
         cornerRadius: 8,
@@ -367,18 +341,18 @@ const Analytics = () => {
           display: false
         },
         ticks: {
-          color: isDarkMode ? '#D1D5DB' : '#6B7280',
+          color: isDark ? '#D1D5DB' : '#6B7280',
           font: { size: 11 }
         }
       },
       y: {
         beginAtZero: true,
         grid: {
-          color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
           drawBorder: false
         },
         ticks: {
-          color: isDarkMode ? '#D1D5DB' : '#6B7280',
+          color: isDark ? '#D1D5DB' : '#6B7280',
           font: { size: 11 },
           callback: function(value) {
             return value.toFixed(0) + 'k';
@@ -392,7 +366,7 @@ const Analytics = () => {
         hoverBorderWidth: 2
       }
     }
-  };
+  });
 
   const renderDataTable = (data, title) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
@@ -448,6 +422,10 @@ const Analytics = () => {
       </div>
     </div>
   );
+
+  if (pageLoading || loading) {
+    return <AdvancedLoadingOverlay message="Loading analytics data..." isDark={isDark} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -648,13 +626,8 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">30-Day Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div style={{ 
-                height: '400px', 
-                backgroundColor: isDarkMode ? 'rgb(32, 36, 41)' : '#F8FAFC',
-                borderRadius: '8px', 
-                padding: '16px' 
-              }}>
-                <Line data={createChartData(last30DaysData, true)} options={chartOptions} />
+              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+                <Line data={createChartData(last30DaysData, true)} options={getChartOptions()} />
               </div>
             </div>
             
@@ -673,13 +646,8 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">12-Month Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div style={{ 
-                height: '400px', 
-                backgroundColor: isDarkMode ? 'rgb(32, 36, 41)' : '#F8FAFC',
-                borderRadius: '8px', 
-                padding: '16px' 
-              }}>
-                <Line data={createChartData(last12MonthsData, true)} options={chartOptions} />
+              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+                <Line data={createChartData(last12MonthsData, true)} options={getChartOptions()} />
               </div>
             </div>
             
@@ -698,13 +666,8 @@ const Analytics = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">10-Year Energy Trends</h3>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Time: {new Date().toLocaleDateString()}</div>
               </div>
-              <div style={{ 
-                height: '400px', 
-                backgroundColor: isDarkMode ? 'rgb(32, 36, 41)' : '#F8FAFC',
-                borderRadius: '8px', 
-                padding: '16px' 
-              }}>
-                <Line data={createChartData(last10YearsData, true)} options={chartOptions} />
+              <div key={isDark} className="h-80 p-4" style={{ backgroundColor: isDark ? 'rgb(32, 36, 41)' : '#ffffff' }}>
+                <Line data={createChartData(last10YearsData, true)} options={getChartOptions()} />
               </div>
             </div>
             

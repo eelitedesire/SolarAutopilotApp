@@ -70,7 +70,7 @@ export default function Results() {
   const loadPeriodData = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/carbon-intensity/results?period=${selectedPeriod}`)
+      const response = await fetch(`/api/results/data?period=${selectedPeriod}`)
       const result = await response.json()
       if (result.success) {
         setData(prev => ({ ...prev, [selectedPeriod]: result.data }))
@@ -418,7 +418,9 @@ export default function Results() {
               </tr>
             </thead>
             <tbody>
-              {paginatedData.map((row, index) => (
+              {paginatedData
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .map((row, index) => (
                 <tr key={index} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="py-3 px-4">{new Date(row.date).toLocaleDateString()}</td>
                   <td className="py-3 px-4">{(row.solarEnergy || 0).toFixed(2)}</td>

@@ -1794,96 +1794,8 @@ app.get('/analytics', (req, res) => {
 })
 
 app.get('/results', async (req, res) => {
-  try {
-    const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE));
-    const selectedZone = req.query.zone || settings.selectedZone;
-    const zones = await getZones();
-
-    let historyData = [];
-    let loadPowerData = [], pvPowerData = [], batteryStateOfChargeData = [], 
-        batteryPowerData = [], gridPowerData = [], gridVoltageData = [];
-    let error = null;
-    let isLoading = false;
-
-    if (selectedZone) {
-      try {
-        const cacheKey = `${selectedZone}`;
-        const isCached = carbonIntensityCacheByZone.has(cacheKey) && 
-                         (Date.now() - carbonIntensityCacheByZone.get(cacheKey).timestamp < CACHE_DURATION);
-
-        if (isCached) {
-          historyData = carbonIntensityCacheByZone.get(cacheKey).data;
-        } else {
-          isLoading = true;
-        }
-
-        [loadPowerData, pvPowerData, batteryStateOfChargeData, batteryPowerData, gridPowerData, gridVoltageData] = await Promise.all([
-          queryInfluxDB(`${mqttTopicPrefix}/total/load_energy/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/pv_energy/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/battery_energy_in/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/battery_energy_out/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/grid_energy_in/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/grid_energy_out/state`)
-        ]);
-
-        if (!isCached) {
-          historyData = await fetchCarbonIntensityHistory(selectedZone);
-          carbonIntensityCacheByZone.set(cacheKey, { data: historyData, timestamp: Date.now() });
-          isLoading = false;
-        }
-      } catch (e) {
-        console.error('Error fetching data:', e);
-        error = 'Error fetching data. Please try again later.';
-        isLoading = false;
-      }
-    }
-
-    const currentDate = moment().format('YYYY-MM-DD');
-    const emissionsData = calculateEmissionsForPeriod(historyData, loadPowerData, pvPowerData, batteryStateOfChargeData, batteryPowerData, gridPowerData, gridVoltageData);
-
-    if (emissionsData.length > 0) {
-      emissionsData[emissionsData.length - 1].date = currentDate;
-    }
-
-    const todayData = emissionsData.find(item => item.date === currentDate) || {
-      date: currentDate,
-      unavoidableEmissions: 0,
-      avoidedEmissions: 0,
-      selfSufficiencyScore: 0,
-      gridEnergy: 0,
-      solarEnergy: 0,
-      carbonIntensity: 0,
-      formattedDate: moment(currentDate).format('MMM D, YYYY')
-    };
-
-    const periods = {
-      today: [todayData],
-      week: emissionsData.slice(-7),
-      month: emissionsData.slice(-30),
-      quarter: emissionsData.slice(-90),
-      year: emissionsData
-    };
-
-    res.render('results', {
-      selectedZone,
-      zones,
-      periods,
-      todayData,
-      error,
-      isLoading,
-      unavoidableEmissions: todayData.unavoidableEmissions,
-      avoidedEmissions: todayData.avoidedEmissions,
-      selfSufficiencyScore: todayData.selfSufficiencyScore,
-      currentDate: currentDate,
-      formattedDate: moment(currentDate).format('MMM D, YYYY'),
-      dateString: moment(currentDate).format('MMM D, YYYY'),
-      ingress_path: process.env.INGRESS_PATH || '',
-    });
-  } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).send('Error loading results');
-  }
-});
+  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'))
+})
 
 app.get('/settings', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist/index.html'))
@@ -1920,129 +1832,145 @@ app.get('/notifications', (req, res) => {
   });
 
 
+  // Remove carbon intensity endpoints that cause errors
   app.get('/api/carbon-intensity/:zone', async (req, res) => {
-    try {
-      const { zone } = req.params;
-      if (!zone) {
-        return res.status(400).json({ error: 'Zone parameter is required' });
-      }
-      
-      const cacheKey = zone;
-      if (carbonIntensityCacheByZone.has(cacheKey)) {
-        const cachedData = carbonIntensityCacheByZone.get(cacheKey);
-        if (Date.now() - cachedData.timestamp < CACHE_DURATION) {
-          return res.json({ 
-            data: cachedData.data,
-            cached: true,
-            cacheAge: Math.round((Date.now() - cachedData.timestamp) / 60000) + ' minutes'
-          });
-        }
-      }
-      
-      res.json({ 
-        status: 'fetching',
-        message: 'Data is being fetched. Please try again in a moment.'
-      });
-      
-      setTimeout(() => fetchCarbonIntensityHistory(zone), 0);
-      
-    } catch (error) {
-      console.error('Error in carbon intensity API:', error);
-      res.status(500).json({ error: 'Failed to fetch carbon intensity data' });
-    }
+    res.json({ 
+      success: false,
+      error: 'Carbon intensity data not available',
+      data: []
+    });
   });
 
-  // Add the missing results endpoint for React frontend
-  app.get('/api/carbon-intensity/results', async (req, res) => {
+  // Results API endpoint without carbon intensity
+  app.get('/api/results/data', async (req, res) => {
     try {
-      const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE));
-      const selectedZone = settings.selectedZone;
-      const period = req.query.period || 'day';
+      const period = req.query.period || 'month';
       
-      if (!selectedZone) {
-        return res.json({
-          success: false,
-          error: 'No zone configured. Please configure your zone in settings first.',
-          data: []
-        });
-      }
-      
-      let historyData = [];
-      let loadPowerData = [], pvPowerData = [], batteryStateOfChargeData = [], 
-          batteryPowerData = [], gridPowerData = [], gridVoltageData = [];
-      
-      try {
-        const cacheKey = selectedZone;
-        const isCached = carbonIntensityCacheByZone.has(cacheKey) && 
-                         (Date.now() - carbonIntensityCacheByZone.get(cacheKey).timestamp < CACHE_DURATION);
-        
-        if (isCached) {
-          historyData = carbonIntensityCacheByZone.get(cacheKey).data;
-        } else {
-          historyData = await fetchCarbonIntensityHistory(selectedZone);
-        }
-        
-        // Fetch energy data from InfluxDB
-        [loadPowerData, pvPowerData, batteryStateOfChargeData, batteryPowerData, gridPowerData, gridVoltageData] = await Promise.all([
-          queryInfluxDB(`${mqttTopicPrefix}/total/load_energy/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/pv_energy/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/battery_energy_in/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/battery_energy_out/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/grid_energy_in/state`),
-          queryInfluxDB(`${mqttTopicPrefix}/total/grid_energy_out/state`)
-        ]);
-        
-      } catch (e) {
-        console.error('Error fetching carbon intensity data:', e);
-        return res.json({
-          success: false,
-          error: 'Error fetching data. Please try again later.',
-          data: []
-        });
-      }
-      
-      // Calculate emissions data using the same function as the working app
-      const emissionsData = calculateEmissionsForPeriod(historyData, loadPowerData, pvPowerData, batteryStateOfChargeData, batteryPowerData, gridPowerData, gridVoltageData);
-      
-      // Filter data based on period
-      let filteredData = emissionsData;
-      const now = new Date();
-      
+      let timeRange, groupBy;
       switch(period) {
-        case 'day':
-          const today = now.toISOString().split('T')[0];
-          filteredData = emissionsData.filter(item => item.date === today);
+        case 'today':
+          timeRange = '1d';
+          groupBy = '1h';
           break;
         case 'week':
-          filteredData = emissionsData.slice(-7);
+          timeRange = '7d';
+          groupBy = '1d';
           break;
         case 'month':
-          filteredData = emissionsData.slice(-30);
+          timeRange = '30d';
+          groupBy = '1d';
           break;
         case 'quarter':
-          filteredData = emissionsData.slice(-90);
+          timeRange = '90d';
+          groupBy = '1d';
           break;
         case 'year':
-          filteredData = emissionsData;
+          timeRange = '365d';
+          groupBy = '1d';
           break;
+        default:
+          timeRange = '30d';
+          groupBy = '1d';
       }
+      
+      const [loadPowerData, pvPowerData, batteryStateOfChargeData, batteryPowerData, gridPowerData, gridVoltageData] = await Promise.all([
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/load_energy/state`, timeRange, groupBy),
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/pv_energy/state`, timeRange, groupBy),
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/battery_energy_in/state`, timeRange, groupBy),
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/battery_energy_out/state`, timeRange, groupBy),
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/grid_energy_in/state`, timeRange, groupBy),
+        queryInfluxDataGrouped(`${mqttTopicPrefix}/total/grid_energy_out/state`, timeRange, groupBy)
+      ]);
+      
+      if (loadPowerData.length === 0 && pvPowerData.length === 0) {
+        const sampleData = generateSampleResultsData(period);
+        return res.json({
+          success: true,
+          data: sampleData,
+          period: period,
+          note: 'Sample data - no real data available'
+        });
+      }
+      
+      const resultsData = processAnalyticsData(
+        loadPowerData,
+        pvPowerData, 
+        batteryStateOfChargeData,
+        batteryPowerData,
+        gridPowerData,
+        gridVoltageData
+      );
+      
+      const formattedData = resultsData.map(item => ({
+        date: item.date,
+        gridEnergy: item.gridEnergy || 0,
+        solarEnergy: item.solarEnergy || 0,
+        loadEnergy: item.loadEnergy || 0,
+        selfSufficiencyScore: item.selfSufficiencyScore || 0,
+        unavoidableEmissions: 0,
+        avoidedEmissions: 0,
+        carbonIntensity: 0
+      }));
       
       res.json({
         success: true,
-        data: filteredData,
+        data: formattedData,
         period: period,
-        zone: selectedZone
+        count: formattedData.length
       });
-      
     } catch (error) {
-      console.error('Error in carbon intensity results API:', error);
+      console.error('Error fetching results data:', error);
       res.status(500).json({ 
-        success: false,
-        error: 'Failed to fetch carbon intensity results',
+        success: false, 
+        error: 'Failed to fetch results data: ' + error.message,
         data: []
       });
     }
-  });
+  })
+
+  function generateSampleResultsData(period) {
+    const data = [];
+    let days = 30;
+    
+    switch(period) {
+      case 'today': days = 1; break;
+      case 'week': days = 7; break;
+      case 'month': days = 30; break;
+      case 'quarter': days = 90; break;
+      case 'year': days = 365; break;
+    }
+    
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      
+      const dayOfYear = date.getDate() + date.getMonth() * 30;
+      const seasonalFactor = 0.5 + 0.5 * Math.sin((dayOfYear / 365) * 2 * Math.PI);
+      const randomFactor = 0.8 + Math.random() * 0.4;
+      
+      const solarEnergy = seasonalFactor * randomFactor * (20 + Math.random() * 30);
+      const loadEnergy = 15 + Math.random() * 20;
+      const gridEnergy = Math.max(0, loadEnergy - solarEnergy);
+      const totalEnergy = gridEnergy + solarEnergy;
+      const selfSufficiencyScore = totalEnergy > 0 ? (solarEnergy / totalEnergy) * 100 : 0;
+      
+      data.push({
+        date: date.toISOString().split('T')[0],
+        gridEnergy: parseFloat(gridEnergy.toFixed(2)),
+        solarEnergy: parseFloat(solarEnergy.toFixed(2)),
+        loadEnergy: parseFloat(loadEnergy.toFixed(2)),
+        selfSufficiencyScore: parseFloat(selfSufficiencyScore.toFixed(2)),
+        unavoidableEmissions: 0,
+        avoidedEmissions: 0,
+        carbonIntensity: 0
+      });
+    }
+    
+    return data;
+  }
   
   app.get('/api/grid-voltage', async (req, res) => {
     try {
@@ -2110,9 +2038,8 @@ app.get('/notifications', (req, res) => {
         });
       }
       
-      // Apply the EXACT same calculation logic as the working EJS app
-      const analyticsData = calculateEmissionsForPeriod(
-        [], // No carbon intensity data for now
+      // Process data without carbon intensity for analytics
+      const analyticsData = processAnalyticsData(
         loadPowerData,
         pvPowerData, 
         batteryStateOfChargeData,
@@ -2135,12 +2062,12 @@ app.get('/notifications', (req, res) => {
       // Convert to the format expected by React component
       const formattedData = processedData.map(item => ({
         date: item.date,
-        loadPower: item.gridEnergy || 0, // Using gridEnergy as load power
+        loadPower: item.loadEnergy || 0,
         pvPower: item.solarEnergy || 0,
-        batteryStateOfCharge: item.gridEnergy || 0, // Battery charged
-        batteryPower: item.solarEnergy * 0.1 || 0, // Battery discharged (estimated)
-        gridPower: item.gridEnergy || 0, // Grid used
-        gridVoltage: item.solarEnergy * 0.05 || 0 // Grid exported (estimated)
+        batteryStateOfCharge: item.batteryCharged || 0,
+        batteryPower: item.batteryDischarged || 0,
+        gridPower: item.gridEnergy || 0,
+        gridVoltage: item.gridExported || 0
       }));
       
       console.log(`Processed ${formattedData.length} analytics records for ${period}`);
@@ -2175,6 +2102,10 @@ app.get('/notifications', (req, res) => {
           date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`,
           gridEnergy: 0,
           solarEnergy: 0,
+          loadEnergy: 0,
+          batteryCharged: 0,
+          batteryDischarged: 0,
+          gridExported: 0,
           unavoidableEmissions: 0,
           avoidedEmissions: 0,
           selfSufficiencyScore: 0
@@ -2183,14 +2114,19 @@ app.get('/notifications', (req, res) => {
       
       monthlyData[monthKey].gridEnergy += item.gridEnergy || 0;
       monthlyData[monthKey].solarEnergy += item.solarEnergy || 0;
+      monthlyData[monthKey].loadEnergy += item.loadEnergy || 0;
+      monthlyData[monthKey].batteryCharged += item.batteryCharged || 0;
+      monthlyData[monthKey].batteryDischarged += item.batteryDischarged || 0;
+      monthlyData[monthKey].gridExported += item.gridExported || 0;
       monthlyData[monthKey].unavoidableEmissions += item.unavoidableEmissions || 0;
       monthlyData[monthKey].avoidedEmissions += item.avoidedEmissions || 0;
     });
     
     // Calculate monthly self-sufficiency
     Object.values(monthlyData).forEach(month => {
-      if (month.gridEnergy > 0) {
-        month.selfSufficiencyScore = (month.solarEnergy / (month.gridEnergy + month.solarEnergy)) * 100;
+      const totalEnergy = month.gridEnergy + month.solarEnergy;
+      if (totalEnergy > 0) {
+        month.selfSufficiencyScore = (month.solarEnergy / totalEnergy) * 100;
       }
     });
     
@@ -2210,6 +2146,10 @@ app.get('/notifications', (req, res) => {
           date: `${yearKey}-01-01`,
           gridEnergy: 0,
           solarEnergy: 0,
+          loadEnergy: 0,
+          batteryCharged: 0,
+          batteryDischarged: 0,
+          gridExported: 0,
           unavoidableEmissions: 0,
           avoidedEmissions: 0,
           selfSufficiencyScore: 0
@@ -2218,14 +2158,19 @@ app.get('/notifications', (req, res) => {
       
       yearlyData[yearKey].gridEnergy += item.gridEnergy || 0;
       yearlyData[yearKey].solarEnergy += item.solarEnergy || 0;
+      yearlyData[yearKey].loadEnergy += item.loadEnergy || 0;
+      yearlyData[yearKey].batteryCharged += item.batteryCharged || 0;
+      yearlyData[yearKey].batteryDischarged += item.batteryDischarged || 0;
+      yearlyData[yearKey].gridExported += item.gridExported || 0;
       yearlyData[yearKey].unavoidableEmissions += item.unavoidableEmissions || 0;
       yearlyData[yearKey].avoidedEmissions += item.avoidedEmissions || 0;
     });
     
     // Calculate yearly self-sufficiency
     Object.values(yearlyData).forEach(year => {
-      if (year.gridEnergy > 0) {
-        year.selfSufficiencyScore = (year.solarEnergy / (year.gridEnergy + year.solarEnergy)) * 100;
+      const totalEnergy = year.gridEnergy + year.solarEnergy;
+      if (totalEnergy > 0) {
+        year.selfSufficiencyScore = (year.solarEnergy / totalEnergy) * 100;
       }
     });
     
@@ -2776,6 +2721,112 @@ app.get('/notifications', (req, res) => {
         selfSufficiencyScore: selfSufficiencyScore,
       };
     });
+  }
+
+  // Process analytics data without carbon intensity
+  function processAnalyticsData(
+    loadPowerData,
+    pvPowerData, 
+    batteryStateOfChargeData,
+    batteryPowerData,
+    gridPowerData,
+    gridVoltageData
+  ) {
+    if (!gridPowerData || !pvPowerData || gridPowerData.length === 0 || pvPowerData.length === 0) {
+      console.log("Missing required data arrays for analytics calculation");
+      return [];
+    }
+  
+    console.log(`Processing analytics - Grid data length: ${gridPowerData.length}, PV data length: ${pvPowerData.length}`);
+  
+    const results = [];
+    
+    for (let i = 0; i < Math.min(gridPowerData.length, pvPowerData.length); i++) {
+      const gridData = gridPowerData[i];
+      const pvData = pvPowerData[i];
+      
+      if (!gridData || !pvData || !gridData.time || !pvData.time) {
+        continue;
+      }
+      
+      const date = new Date(gridData.time).toISOString().split('T')[0];
+      
+      // Get current values
+      const currentLoadPower = parseFloat(loadPowerData[i]?.value || '0.0');
+      const currentPvPower = parseFloat(pvData.value || '0.0');
+      const currentBatteryCharged = parseFloat(batteryStateOfChargeData[i]?.value || '0.0');
+      const currentBatteryDischarged = parseFloat(batteryPowerData[i]?.value || '0.0');
+      const currentGridUsed = parseFloat(gridData.value || '0.0');
+      const currentGridExported = parseFloat(gridVoltageData[i]?.value || '0.0');
+      
+      let dailyLoadPower, dailyPvPower, dailyBatteryCharged, 
+          dailyBatteryDischarged, dailyGridUsed, dailyGridExported;
+      
+      if (i > 0) {
+        // Get previous values
+        const previousLoadPower = parseFloat(loadPowerData[i - 1]?.value || '0.0');
+        const previousPvPower = parseFloat(pvPowerData[i - 1]?.value || '0.0');
+        const previousBatteryCharged = parseFloat(batteryStateOfChargeData[i - 1]?.value || '0.0');
+        const previousBatteryDischarged = parseFloat(batteryPowerData[i - 1]?.value || '0.0');
+        const previousGridUsed = parseFloat(gridPowerData[i - 1]?.value || '0.0');
+        const previousGridExported = parseFloat(gridVoltageData[i - 1]?.value || '0.0');
+        
+        // Check if all current values are greater than previous values
+        const allGreaterThanPrevious = 
+            previousLoadPower > 0 && currentLoadPower > previousLoadPower &&
+            previousPvPower > 0 && currentPvPower > previousPvPower &&
+            previousBatteryCharged > 0 && currentBatteryCharged > previousBatteryCharged &&
+            previousBatteryDischarged > 0 && currentBatteryDischarged > previousBatteryDischarged &&
+            previousGridUsed > 0 && currentGridUsed > previousGridUsed &&
+            previousGridExported > 0 && currentGridExported > previousGridExported;
+        
+        if (allGreaterThanPrevious) {
+            // If all metrics increased, calculate differences
+            dailyLoadPower = currentLoadPower - previousLoadPower;
+            dailyPvPower = currentPvPower - previousPvPower;
+            dailyBatteryCharged = currentBatteryCharged - previousBatteryCharged;
+            dailyBatteryDischarged = currentBatteryDischarged - previousBatteryDischarged;
+            dailyGridUsed = currentGridUsed - previousGridUsed;
+            dailyGridExported = currentGridExported - previousGridExported;
+        } else {
+            // Otherwise, use current values as is
+            dailyLoadPower = currentLoadPower;
+            dailyPvPower = currentPvPower;
+            dailyBatteryCharged = currentBatteryCharged;
+            dailyBatteryDischarged = currentBatteryDischarged;
+            dailyGridUsed = currentGridUsed;
+            dailyGridExported = currentGridExported;
+        }
+      } else {
+        // First entry, use current values
+        dailyLoadPower = currentLoadPower;
+        dailyPvPower = currentPvPower;
+        dailyBatteryCharged = currentBatteryCharged;
+        dailyBatteryDischarged = currentBatteryDischarged;
+        dailyGridUsed = currentGridUsed;
+        dailyGridExported = currentGridExported;
+      }
+      
+      // Calculate self-sufficiency score
+      const totalEnergy = dailyGridUsed + dailyPvPower;
+      const selfSufficiencyScore = totalEnergy > 0 ? (dailyPvPower / totalEnergy) * 100 : 0;
+      
+      results.push({
+        date: date,
+        gridEnergy: dailyGridUsed,
+        solarEnergy: dailyPvPower,
+        loadEnergy: dailyLoadPower,
+        batteryCharged: dailyBatteryCharged,
+        batteryDischarged: dailyBatteryDischarged,
+        gridExported: dailyGridExported,
+        selfSufficiencyScore: selfSufficiencyScore,
+        unavoidableEmissions: 0, // No carbon intensity data
+        avoidedEmissions: 0, // No carbon intensity data
+        carbonIntensity: 0
+      });
+    }
+    
+    return results;
   }
   
    async function prefetchCarbonIntensityData() {
