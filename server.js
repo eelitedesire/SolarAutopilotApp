@@ -2867,7 +2867,9 @@ app.get('/notifications', (req, res) => {
         continue;
       }
       
-      const date = new Date(gridData.time).toISOString().split('T')[0];
+      const date = new Date(gridData.time);
+      date.setDate(date.getDate() + 1); // Add one day to correct the offset
+      const dateStr = date.toISOString().split('T')[0];
       
       // Get current values
       const currentLoadPower = parseFloat(loadPowerData[i]?.value || '0.0');
@@ -2930,7 +2932,7 @@ app.get('/notifications', (req, res) => {
       const selfSufficiencyScore = totalEnergy > 0 ? (dailyPvPower / totalEnergy) * 100 : 0;
       
       results.push({
-        date: date,
+        date: dateStr,
         gridEnergy: dailyGridUsed,
         solarEnergy: dailyPvPower,
         loadEnergy: dailyLoadPower,
@@ -2949,19 +2951,50 @@ app.get('/notifications', (req, res) => {
     const hasToday = results.some(item => item.date === today);
     
     if (!hasToday) {
-      results.push({
-        date: today,
-        gridEnergy: 0,
-        solarEnergy: 0,
-        loadEnergy: 0,
-        batteryCharged: 0,
-        batteryDischarged: 0,
-        gridExported: 0,
-        selfSufficiencyScore: 0,
-        unavoidableEmissions: 0,
-        avoidedEmissions: 0,
-        carbonIntensity: 0
-      });
+      // Check if yesterday has data that should be today's data
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const yesterdayData = results.find(item => item.date === yesterdayStr);
+      
+      if (yesterdayData && (yesterdayData.gridEnergy > 0 || yesterdayData.solarEnergy > 0)) {
+        // Move yesterday's data to today if today has no data
+        results.push({
+          date: today,
+          gridEnergy: yesterdayData.gridEnergy,
+          solarEnergy: yesterdayData.solarEnergy,
+          loadEnergy: yesterdayData.loadEnergy,
+          batteryCharged: yesterdayData.batteryCharged,
+          batteryDischarged: yesterdayData.batteryDischarged,
+          gridExported: yesterdayData.gridExported,
+          selfSufficiencyScore: yesterdayData.selfSufficiencyScore,
+          unavoidableEmissions: 0,
+          avoidedEmissions: 0,
+          carbonIntensity: 0
+        });
+        // Clear yesterday's data
+        yesterdayData.gridEnergy = 0;
+        yesterdayData.solarEnergy = 0;
+        yesterdayData.loadEnergy = 0;
+        yesterdayData.batteryCharged = 0;
+        yesterdayData.batteryDischarged = 0;
+        yesterdayData.gridExported = 0;
+        yesterdayData.selfSufficiencyScore = 0;
+      } else {
+        results.push({
+          date: today,
+          gridEnergy: 0,
+          solarEnergy: 0,
+          loadEnergy: 0,
+          batteryCharged: 0,
+          batteryDischarged: 0,
+          gridExported: 0,
+          selfSufficiencyScore: 0,
+          unavoidableEmissions: 0,
+          avoidedEmissions: 0,
+          carbonIntensity: 0
+        });
+      }
     }
     
     return results;
