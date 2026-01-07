@@ -1967,8 +1967,8 @@ app.get('/notifications', (req, res) => {
       let timeRange, groupBy;
       switch(period) {
         case 'today':
-          timeRange = '1d';
-          groupBy = '1h';
+          timeRange = '30d';
+          groupBy = '1d';
           break;
         case 'week':
           timeRange = '7d';
@@ -2030,11 +2030,36 @@ app.get('/notifications', (req, res) => {
         carbonIntensity: 0
       }));
       
+      // Filter to only today's data if period is 'today'
+      let finalData = formattedData;
+      if (period === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        const todayData = formattedData.filter(item => item.date === today);
+        
+        if (todayData.length > 0) {
+          // Aggregate all today's data into a single entry
+          const aggregated = {
+            date: today,
+            gridEnergy: todayData.reduce((sum, item) => sum + item.gridEnergy, 0),
+            solarEnergy: todayData.reduce((sum, item) => sum + item.solarEnergy, 0),
+            loadEnergy: todayData.reduce((sum, item) => sum + item.loadEnergy, 0),
+            unavoidableEmissions: 0,
+            avoidedEmissions: 0,
+            carbonIntensity: 0
+          };
+          const totalEnergy = aggregated.gridEnergy + aggregated.solarEnergy;
+          aggregated.selfSufficiencyScore = totalEnergy > 0 ? (aggregated.solarEnergy / totalEnergy) * 100 : 0;
+          finalData = [aggregated];
+        } else {
+          finalData = [];
+        }
+      }
+      
       res.json({
         success: true,
-        data: formattedData,
+        data: finalData,
         period: period,
-        count: formattedData.length
+        count: finalData.length
       });
     } catch (error) {
       console.error('Error fetching results data:', error);

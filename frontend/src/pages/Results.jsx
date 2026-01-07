@@ -48,7 +48,7 @@ export default function Results() {
     quarter: [],
     year: []
   })
-  const [selectedPeriod, setSelectedPeriod] = useState('day')
+  const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [currentPage, setCurrentPage] = useState(1)
   const [entriesPerPage, setEntriesPerPage] = useState(25)
   const [loading, setLoading] = useState(true)
@@ -56,7 +56,7 @@ export default function Results() {
   const { isLoading: pageLoading } = usePageLoading(700, 1300)
 
   const periods = [
-    { id: 'day', label: 'Today', icon: Calendar },
+    { id: 'today', label: 'Today', icon: Calendar },
     { id: 'week', label: 'Week', icon: Calendar },
     { id: 'month', label: 'Month', icon: Calendar },
     { id: 'quarter', label: 'Quarter', icon: Calendar },
@@ -88,7 +88,7 @@ export default function Results() {
     const totalAvoided = currentData.reduce((sum, d) => sum + (d.avoidedEmissions || 0), 0)
     const avgEfficiency = currentData.reduce((sum, d) => sum + (d.selfSufficiencyScore || 0), 0) / Math.max(1, currentData.length)
     const totalSolar = currentData.reduce((sum, d) => sum + (d.solarEnergy || 0), 0)
-    const avgCarbon = currentData.reduce((sum, d) => sum + (d.carbonIntensity || 233), 0) / Math.max(1, currentData.length)
+    const avgCarbon = currentData.reduce((sum, d) => sum + (d.carbonIntensity || 0), 0) / Math.max(1, currentData.length)
 
     return {
       emissions: totalEmissions,
