@@ -87,7 +87,7 @@ export default function AdvancedLoadingOverlay({ message = "Loading your solar e
 
           {/* Brand name with gradient */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 via-green-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold mb-2" style={{ color: '#DEAF0B' }}>
               CARBONOZ
             </h1>
             <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white/90' : 'text-gray-800'}`}>
@@ -102,7 +102,7 @@ export default function AdvancedLoadingOverlay({ message = "Loading your solar e
           <div className="mb-6">
             <div className={`w-full rounded-full h-2 mb-3 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}>
               <div 
-                className="h-full bg-gradient-to-r from-yellow-400 to-green-500 rounded-full transition-all duration-300 ease-out relative"
+                className="h-full bg-green-500 rounded-full transition-all duration-300 ease-out relative"
                 style={{ width: `${Math.min(progress, 100)}%` }}
               >
                 <div className="absolute inset-0 bg-white/30 animate-pulse" />
