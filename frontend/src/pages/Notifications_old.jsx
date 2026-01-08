@@ -438,7 +438,7 @@ export default function Notifications() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center mb-4 lg:mb-0">
           <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
             <Bell className="w-6 h-6 text-black" />
@@ -467,271 +467,121 @@ export default function Notifications() {
             <SettingsIcon className="w-4 h-4 mr-2" />
             Settings
           </button>
+          <button
+            onClick={clearAllNotifications}
+            className="btn btn-secondary"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={clsx(
-            'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
-            activeTab === 'notifications'
-              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          )}
-        >
-          <Bell className="w-4 h-4 mr-2 inline" />
-          Notifications
-        </button>
-        <button
-          onClick={() => setActiveTab('rules')}
-          className={clsx(
-            'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
-            activeTab === 'rules'
-              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-          )}
-        >
-          <Zap className="w-4 h-4 mr-2 inline" />
-          Rules ({rules.length})
-        </button>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          icon={AlertCircle}
+          label="Critical"
+          value={stats.bySeverity.critical}
+          color="red"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Warnings"
+          value={stats.bySeverity.warning}
+          color="yellow"
+        />
+        <StatCard
+          icon={Info}
+          label="Info"
+          value={stats.bySeverity.info}
+          color="blue"
+        />
+        <StatCard
+          icon={Bell}
+          label="Total (24h)"
+          value={stats.last24Hours}
+          color="gray"
+        />
       </div>
 
-      {/* Notifications Tab */}
-      {activeTab === 'notifications' && (
-        <>
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <StatCard
-              icon={AlertCircle}
-              label="Critical"
-              value={stats.bySeverity.critical}
-              color="red"
-            />
-            <StatCard
-              icon={AlertTriangle}
-              label="Warnings"
-              value={stats.bySeverity.warning}
-              color="yellow"
-            />
-            <StatCard
-              icon={Info}
-              label="Info"
-              value={stats.bySeverity.info}
-              color="blue"
-            />
-            <StatCard
-              icon={Bell}
-              label="Total (24h)"
-              value={stats.last24Hours}
-              color="gray"
-            />
-          </div>
+      {/* Filters */}
+      <div className="card">
+        <div className="flex flex-wrap gap-3 mb-4">
+          {severityFilters.map(filter => {
+            const Icon = filter.icon
+            return (
+              <button
+                key={filter.id}
+                onClick={() => setCurrentFilter(filter.id)}
+                className={clsx(
+                  'flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                  currentFilter === filter.id
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                )}
+              >
+                <Icon className="w-4 h-4 mr-2" />
+                {filter.label}
+              </button>
+            )
+          })}
+        </div>
 
-          {/* Filters */}
-          <div className="card mb-6">
-            <div className="flex flex-wrap gap-3 mb-4">
-              {severityFilters.map(filter => {
-                const Icon = filter.icon
-                return (
-                  <button
-                    key={filter.id}
-                    onClick={() => setCurrentFilter(filter.id)}
-                    className={clsx(
-                      'flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                      currentFilter === filter.id
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    )}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {filter.label}
-                  </button>
-                )
-              })}
-            </div>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => createTestNotification('info')}
+            className="btn btn-secondary"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Test Info
+          </button>
+          <button
+            onClick={() => createTestNotification('warning')}
+            className="btn btn-secondary"
+          >
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            Test Warning
+          </button>
+          <button
+            onClick={() => createTestNotification('critical')}
+            className="btn btn-secondary"
+          >
+            <AlertCircle className="w-4 h-4 mr-2" />
+            Test Critical
+          </button>
+          <button
+            onClick={toggleSound}
+            className="btn btn-secondary"
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4 mr-2" /> : <VolumeX className="w-4 h-4 mr-2" />}
+            Sound {soundEnabled ? 'On' : 'Off'}
+          </button>
+        </div>
+      </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => createTestNotification('info')}
-                className="btn btn-secondary"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Test Info
-              </button>
-              <button
-                onClick={() => createTestNotification('warning')}
-                className="btn btn-secondary"
-              >
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                Test Warning
-              </button>
-              <button
-                onClick={() => createTestNotification('critical')}
-                className="btn btn-secondary"
-              >
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Test Critical
-              </button>
-              <button
-                onClick={toggleSound}
-                className="btn btn-secondary"
-              >
-                {soundEnabled ? <Volume2 className="w-4 h-4 mr-2" /> : <VolumeX className="w-4 h-4 mr-2" />}
-                Sound {soundEnabled ? 'On' : 'Off'}
-              </button>
-              <button
-                onClick={clearAllNotifications}
-                className="btn btn-secondary"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear All
-              </button>
-            </div>
-          </div>
-
-          {/* Notifications List */}
-          <div className="card">
-            {loading ? (
-              <AdvancedLoadingOverlay message="Loading notifications..." isDark={isDark} />
-            ) : filteredNotifications.length > 0 ? (
-              <div className="space-y-4">
-                {filteredNotifications.map((notification, index) => (
-                  <NotificationItem key={index} notification={notification} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Bell className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No Notifications
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  No notifications found for the selected filter.
-                </p>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Rules Tab */}
-      {activeTab === 'rules' && (
-        <>
-          {/* Rules Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div className="flex items-center space-x-4 mb-4 sm:mb-0">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search rules..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"
-                />
-              </div>
-              <select
-                value={ruleFilter}
-                onChange={(e) => setRuleFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm"
-              >
-                <option value="all">All Rules</option>
-                <option value="enabled">Enabled Only</option>
-                <option value="disabled">Disabled Only</option>
-              </select>
-            </div>
-            
-            <div className="flex space-x-3">
-              <input
-                type="file"
-                accept=".json"
-                onChange={importRules}
-                className="hidden"
-                id="import-rules"
-              />
-              <label
-                htmlFor="import-rules"
-                className="btn btn-secondary cursor-pointer"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Import
-              </label>
-              <button
-                onClick={exportRules}
-                className="btn btn-secondary"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </button>
-              <button
-                onClick={() => {
-                  setEditingRule(null)
-                  setShowRuleBuilder(true)
-                }}
-                className="btn btn-primary"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Rule
-              </button>
-            </div>
-          </div>
-
-          {/* Rules List */}
+      {/* Notifications List */}
+      <div className="card">
+        {loading ? (
+          <AdvancedLoadingOverlay message="Loading notifications..." isDark={isDark} />
+        ) : filteredNotifications.length > 0 ? (
           <div className="space-y-4">
-            {filteredRules.length > 0 ? (
-              filteredRules.map(rule => (
-                <RuleCard
-                  key={rule.id}
-                  rule={rule}
-                  onEdit={(rule) => {
-                    setEditingRule(rule)
-                    setShowRuleBuilder(true)
-                  }}
-                  onDelete={deleteRule}
-                  onToggle={toggleRule}
-                  onTest={testRule}
-                  onDuplicate={duplicateRule}
-                />
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <Zap className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No Rules Found
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
-                  {searchTerm || ruleFilter !== 'all' 
-                    ? 'No rules match your current filters.' 
-                    : 'Create your first notification rule to get started.'}
-                </p>
-                <button
-                  onClick={() => {
-                    setEditingRule(null)
-                    setShowRuleBuilder(true)
-                  }}
-                  className="btn btn-primary"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create First Rule
-                </button>
-              </div>
-            )}
+            {filteredNotifications.map((notification, index) => (
+              <NotificationItem key={index} notification={notification} />
+            ))}
           </div>
-        </>
-      )}
-
-      {/* Rule Builder Modal */}
-      <RuleBuilder
-        isOpen={showRuleBuilder}
-        onClose={() => {
-          setShowRuleBuilder(false)
-          setEditingRule(null)
-        }}
-        rule={editingRule}
-        onSave={editingRule ? updateRule : createRule}
-      />
+        ) : (
+          <div className="text-center py-12">
+            <Bell className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No Notifications
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              No notifications found for the selected filter.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Settings Modal */}
       {showSettings && (

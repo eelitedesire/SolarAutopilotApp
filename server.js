@@ -26,6 +26,7 @@ const telegramService = require('./services/telegramService');
 const warningService = require('./services/warningService');
 const notificationRoutes = require('./routes/notificationRoutes');
 const notificationService = require('./services/notificationService');
+const ruleEvaluationService = require('./services/ruleEvaluationService');
 const tibberService = require('./services/tibberService');
 const aiChargingEngine = require('./services/aiChargingEngine');
 const memoryMonitor = require('./utils/memoryMonitor');
@@ -4977,6 +4978,22 @@ async function initializeConnections() {
   
   // Make enhanced notification service globally available
   global.notificationService = notificationService;
+  global.ruleEvaluationService = ruleEvaluationService;
+  global.currentSystemState = currentSystemState;
+
+  // Start periodic rule evaluation every 30 seconds
+  setInterval(() => {
+    try {
+      if (currentSystemState && Object.keys(currentSystemState).length > 0) {
+        const tibberData = tibberService.getCachedData();
+        notificationService.evaluateNotificationRules(currentSystemState, tibberData);
+      }
+    } catch (error) {
+      console.error('Error in periodic rule evaluation:', error);
+    }
+  }, 30000); // 30 seconds
+
+  console.log('✅ Periodic rule evaluation started (every 30 seconds)');
 
   if (global.influx) {
     console.log('🔄 Initializing Tibber cache from InfluxDB...');

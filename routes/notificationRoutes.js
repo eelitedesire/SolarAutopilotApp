@@ -5,6 +5,9 @@ const express = require('express');
 const router = express.Router();
 const notificationService = require('../services/notificationService');
 const telegramService = require('../services/telegramService');
+const ruleEvaluationService = require('../services/ruleEvaluationService');
+const fs = require('fs');
+const path = require('path');
 
 // Get all notifications with filtering
 router.get('/', (req, res) => {
@@ -563,6 +566,224 @@ router.post('/clear-all', (req, res) => {
         res.json({ success: true, message: 'All notifications cleared' });
     } catch (error) {
         console.error('Error clearing all notifications:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ===== NOTIFICATION RULES MANAGEMENT =====
+
+// Get all notification rules
+router.get('/rules', (req, res) => {
+    try {
+        const rules = ruleEvaluationService.getRules();
+        res.json({ success: true, rules });
+    } catch (error) {
+        console.error('Error getting rules:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Create new notification rule
+router.post('/rules', (req, res) => {
+    try {
+        const rule = ruleEvaluationService.createRule(req.body);
+        res.json({ success: true, rule });
+    } catch (error) {
+        console.error('Error creating rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get specific rule
+router.get('/rules/:id', (req, res) => {
+    try {
+        const rule = ruleEvaluationService.getRule(req.params.id);
+        if (!rule) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+        res.json({ success: true, rule });
+    } catch (error) {
+        console.error('Error getting rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Update notification rule
+router.put('/rules/:id', (req, res) => {
+    try {
+        const rule = ruleEvaluationService.updateRule(req.params.id, req.body);
+        if (!rule) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+        res.json({ success: true, rule });
+    } catch (error) {
+        console.error('Error updating rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Delete notification rule
+router.delete('/rules/:id', (req, res) => {
+    try {
+        const success = ruleEvaluationService.deleteRule(req.params.id);
+        if (!success) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+        res.json({ success: true, message: 'Rule deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Toggle rule enabled/disabled
+router.post('/rules/:id/toggle', (req, res) => {
+    try {
+        const rule = ruleEvaluationService.toggleRule(req.params.id);
+        if (!rule) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+        res.json({ success: true, rule, message: `Rule ${rule.enabled ? 'enabled' : 'disabled'}` });
+    } catch (error) {
+        console.error('Error toggling rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Test notification rule
+router.post('/rules/:id/test', (req, res) => {
+    try {
+        const systemState = global.currentSystemState || req.body.systemState || {};
+        const tibberData = global.currentTibberData || req.body.tibberData || {};
+        
+        const testResult = ruleEvaluationService.testRule(req.params.id, systemState, tibberData);
+        if (!testResult) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+
+        // If rule would trigger, create a test notification
+        if (testResult.wouldTrigger) {
+            const rule = ruleEvaluationService.getRule(req.params.id);
+            const testNotification = notificationService.createNotification({
+                type: 'test_rule',
+                severity: rule.action.severity,
+                title: `[TEST] ${rule.name}`,
+                message: testResult.message,
+                source: 'rule_test',
+                data: { ruleId: req.params.id, testMode: true },
+                channels: ['ui']
+            });
+            
+            notificationService.processNotification(testNotification);
+        }
+
+        res.json({ success: true, testResult });
+    } catch (error) {
+        console.error('Error testing rule:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get rule statistics
+router.get('/rules/:id/stats', (req, res) => {
+    try {
+        const rule = ruleEvaluationService.getRule(req.params.id);
+        if (!rule) {
+            return res.status(404).json({ success: false, error: 'Rule not found' });
+        }
+        res.json({ success: true, statistics: rule.statistics });
+    } catch (error) {
+        console.error('Error getting rule stats:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Import notification rules
+router.post('/rules/import', (req, res) => {
+    try {
+        const result = ruleEvaluationService.importRules(req.body);
+        res.json(result);
+    } catch (error) {
+        console.error('Error importing rules:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Export notification rules
+router.get('/rules/export', (req, res) => {
+    try {
+        const data = ruleEvaluationService.exportRules();
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error exporting rules:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get rule templates
+router.get('/templates', (req, res) => {
+    try {
+        const templatesPath = path.join(__dirname, '../data/notification-templates.json');
+        if (fs.existsSync(templatesPath)) {
+            const templates = JSON.parse(fs.readFileSync(templatesPath, 'utf8'));
+            res.json({ success: true, templates: templates.templates, categories: templates.categories });
+        } else {
+            res.json({ success: true, templates: [], categories: [] });
+        }
+    } catch (error) {
+        console.error('Error getting templates:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Create rule from template
+router.post('/rules/from-template/:templateId', (req, res) => {
+    try {
+        const templatesPath = path.join(__dirname, '../data/notification-templates.json');
+        if (!fs.existsSync(templatesPath)) {
+            return res.status(404).json({ success: false, error: 'Templates not found' });
+        }
+
+        const templates = JSON.parse(fs.readFileSync(templatesPath, 'utf8'));
+        const template = templates.templates.find(t => t.id === req.params.templateId);
+        
+        if (!template) {
+            return res.status(404).json({ success: false, error: 'Template not found' });
+        }
+
+        const ruleData = {
+            ...template.template,
+            ...req.body // Allow overrides
+        };
+
+        const rule = ruleEvaluationService.createRule(ruleData);
+        res.json({ success: true, rule });
+    } catch (error) {
+        console.error('Error creating rule from template:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Evaluate all rules (for testing)
+router.post('/rules/evaluate', (req, res) => {
+    try {
+        const systemState = global.currentSystemState || req.body.systemState || {};
+        const tibberData = global.currentTibberData || req.body.tibberData || {};
+        
+        const triggeredRules = ruleEvaluationService.evaluateRules(systemState, tibberData);
+        
+        res.json({ 
+            success: true, 
+            triggeredRules: triggeredRules.length,
+            rules: triggeredRules.map(rule => ({
+                id: rule.id,
+                name: rule.name,
+                severity: rule.action.severity,
+                message: ruleEvaluationService.generateMessage(rule, systemState, tibberData)
+            }))
+        });
+    } catch (error) {
+        console.error('Error evaluating rules:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

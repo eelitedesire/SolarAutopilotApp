@@ -1,0 +1,462 @@
+{
+  "templates": [
+    {
+      "id": "battery_low_alert",
+      "name": "Battery Low Alert",
+      "description": "Alert when battery SOC is below 20%",
+      "category": "battery",
+      "template": {
+        "name": "Battery Low Alert",
+        "description": "Alert when battery SOC is critically low",
+        "priority": "high",
+        "conditions": [
+          {
+            "parameter": "battery_soc",
+            "operator": "lt",
+            "value": 20,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "warning",
+          "messageTemplate": "🔋 Battery Low: {battery_soc}%\nPV: {pv_power}W | Load: {load}W\nGrid: {grid_power}W",
+          "cooldown": 1800000
+        },
+        "timeConditions": {
+          "enabled": false,
+          "startHour": 0,
+          "endHour": 24,
+          "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        }
+      }
+    },
+    {
+      "id": "battery_critical_alert",
+      "name": "Battery Critical Alert",
+      "description": "Critical alert when battery SOC is below 10%",
+      "category": "battery",
+      "template": {
+        "name": "Battery Critical Alert",
+        "description": "Critical alert for extremely low battery",
+        "priority": "critical",
+        "conditions": [
+          {
+            "parameter": "battery_soc",
+            "operator": "lt",
+            "value": 10,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "critical",
+          "messageTemplate": "🚨 CRITICAL: Battery at {battery_soc}%!\nImmediate charging required!\nPV: {pv_power}W | Load: {load}W",
+          "cooldown": 600000
+        }
+      }
+    },
+    {
+      "id": "negative_price_alert",
+      "name": "Negative Price Alert",
+      "description": "Alert when electricity prices go negative",
+      "category": "pricing",
+      "template": {
+        "name": "Negative Price Opportunity",
+        "description": "Alert when you get paid to use electricity",
+        "priority": "critical",
+        "conditions": [
+          {
+            "parameter": "currentPrice",
+            "operator": "lt",
+            "value": 0,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "critical",
+          "messageTemplate": "💸 NEGATIVE PRICES! {currentPrice}¢/kWh\nYou're getting PAID to use electricity!\nMaximize charging NOW!",
+          "cooldown": 300000
+        }
+      }
+    },
+    {
+      "id": "optimal_charging_price",
+      "name": "Optimal Charging Price",
+      "description": "Alert when price is in bottom 30% (optimal for charging)",
+      "category": "pricing",
+      "template": {
+        "name": "Optimal Charging Price",
+        "description": "Good time to charge battery from grid",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "currentPrice",
+            "operator": "lt",
+            "value": 8,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "💰 Optimal Price: {currentPrice}¢/kWh\nGood time to charge battery!\nBattery: {battery_soc}%",
+          "cooldown": 3600000
+        }
+      }
+    },
+    {
+      "id": "expensive_price_warning",
+      "name": "Expensive Price Warning",
+      "description": "Warning when electricity prices are high",
+      "category": "pricing",
+      "template": {
+        "name": "High Price Warning",
+        "description": "Avoid charging during expensive periods",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "currentPrice",
+            "operator": "gt",
+            "value": 15,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "warning",
+          "messageTemplate": "💸 High Prices: {currentPrice}¢/kWh\nAvoid grid charging!\nBattery: {battery_soc}% | PV: {pv_power}W",
+          "cooldown": 3600000
+        }
+      }
+    },
+    {
+      "id": "high_solar_generation",
+      "name": "High Solar Generation",
+      "description": "Alert when PV power exceeds 5kW",
+      "category": "solar",
+      "template": {
+        "name": "High Solar Generation",
+        "description": "Excellent solar conditions detected",
+        "priority": "low",
+        "conditions": [
+          {
+            "parameter": "pv_power",
+            "operator": "gt",
+            "value": 5000,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "☀️ Excellent Solar: {pv_power}W\nGreat generation conditions!\nBattery: {battery_soc}%",
+          "cooldown": 3600000
+        }
+      }
+    },
+    {
+      "id": "low_solar_generation",
+      "name": "Low Solar Generation",
+      "description": "Alert when PV power is very low during day",
+      "category": "solar",
+      "template": {
+        "name": "Low Solar Generation",
+        "description": "Poor solar conditions during daylight hours",
+        "priority": "low",
+        "conditions": [
+          {
+            "parameter": "pv_power",
+            "operator": "lt",
+            "value": 100,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "🌥️ Low Solar: {pv_power}W\nPoor generation conditions\nBattery: {battery_soc}%",
+          "cooldown": 7200000
+        },
+        "timeConditions": {
+          "enabled": true,
+          "startHour": 8,
+          "endHour": 18,
+          "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        }
+      }
+    },
+    {
+      "id": "grid_voltage_issue",
+      "name": "Grid Voltage Issue",
+      "description": "Alert when grid voltage is outside safe range (200-250V)",
+      "category": "system",
+      "template": {
+        "name": "Grid Voltage Issue",
+        "description": "Grid voltage outside safe operating range",
+        "priority": "critical",
+        "conditions": [
+          {
+            "parameter": "grid_voltage",
+            "operator": "lt",
+            "value": 200,
+            "type": "threshold"
+          },
+          {
+            "parameter": "grid_voltage",
+            "operator": "gt",
+            "value": 250,
+            "type": "threshold"
+          }
+        ],
+        "logic": "OR",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "critical",
+          "messageTemplate": "⚡ Grid Voltage Issue: {grid_voltage}V\nNormal range: 200-250V\nSystem protection may activate!",
+          "cooldown": 900000
+        }
+      }
+    },
+    {
+      "id": "high_load_consumption",
+      "name": "High Load Consumption",
+      "description": "Alert when load consumption exceeds 8kW",
+      "category": "consumption",
+      "template": {
+        "name": "High Load Alert",
+        "description": "Unusually high power consumption detected",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "load",
+            "operator": "gt",
+            "value": 8000,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "warning",
+          "messageTemplate": "⚡ High Load: {load}W\nUnusual consumption detected\nBattery: {battery_soc}% | PV: {pv_power}W",
+          "cooldown": 1800000
+        }
+      }
+    },
+    {
+      "id": "battery_fully_charged",
+      "name": "Battery Fully Charged",
+      "description": "Notification when battery reaches 100%",
+      "category": "battery",
+      "template": {
+        "name": "Battery Fully Charged",
+        "description": "Battery has reached full capacity",
+        "priority": "low",
+        "conditions": [
+          {
+            "parameter": "battery_soc",
+            "operator": "gte",
+            "value": 100,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "🔋 Battery Full: {battery_soc}%\nCharging complete!\nPV: {pv_power}W | Load: {load}W",
+          "cooldown": 3600000
+        }
+      }
+    },
+    {
+      "id": "ai_started_charging",
+      "name": "AI Started Charging",
+      "description": "Notification when AI engine starts battery charging",
+      "category": "ai",
+      "template": {
+        "name": "AI Started Charging",
+        "description": "AI engine initiated battery charging",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "ai_decision",
+            "operator": "eq",
+            "value": "CHARGE_GRID",
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "info",
+          "messageTemplate": "🤖 AI Started Charging\nBattery: {battery_soc}%\nPrice: {currentPrice}¢/kWh\nOptimal charging conditions detected",
+          "cooldown": 1800000
+        }
+      }
+    },
+    {
+      "id": "ai_stopped_charging",
+      "name": "AI Stopped Charging",
+      "description": "Notification when AI engine stops battery charging",
+      "category": "ai",
+      "template": {
+        "name": "AI Stopped Charging",
+        "description": "AI engine stopped battery charging",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "ai_decision",
+            "operator": "eq",
+            "value": "STOP_CHARGING",
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "🤖 AI Stopped Charging\nBattery: {battery_soc}%\nPrice: {currentPrice}¢/kWh\nCharging no longer optimal",
+          "cooldown": 1800000
+        }
+      }
+    },
+    {
+      "id": "price_change_alert",
+      "name": "Significant Price Change",
+      "description": "Alert when electricity price changes by more than 50%",
+      "category": "pricing",
+      "template": {
+        "name": "Price Change Alert",
+        "description": "Significant electricity price change detected",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "currentPrice",
+            "operator": "changed_by",
+            "value": 50,
+            "type": "change"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "📈 Price Change: {currentPrice}¢/kWh\nSignificant price movement detected\nBattery: {battery_soc}%",
+          "cooldown": 1800000
+        }
+      }
+    },
+    {
+      "id": "weekend_low_battery",
+      "name": "Weekend Low Battery",
+      "description": "Special alert for low battery during weekends",
+      "category": "battery",
+      "template": {
+        "name": "Weekend Low Battery",
+        "description": "Low battery alert specifically for weekends",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "battery_soc",
+            "operator": "lt",
+            "value": 30,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["telegram", "ui"],
+          "severity": "warning",
+          "messageTemplate": "🔋 Weekend Battery Low: {battery_soc}%\nConsider charging for weekend usage\nPV: {pv_power}W | Price: {currentPrice}¢/kWh",
+          "cooldown": 3600000
+        },
+        "timeConditions": {
+          "enabled": true,
+          "startHour": 0,
+          "endHour": 24,
+          "days": ["saturday", "sunday"]
+        }
+      }
+    },
+    {
+      "id": "night_time_consumption",
+      "name": "High Night Consumption",
+      "description": "Alert for high consumption during night hours",
+      "category": "consumption",
+      "template": {
+        "name": "High Night Consumption",
+        "description": "Unusual consumption during night hours",
+        "priority": "medium",
+        "conditions": [
+          {
+            "parameter": "load",
+            "operator": "gt",
+            "value": 3000,
+            "type": "threshold"
+          }
+        ],
+        "logic": "AND",
+        "action": {
+          "channels": ["ui"],
+          "severity": "info",
+          "messageTemplate": "🌙 High Night Load: {load}W\nUnusual night consumption\nBattery: {battery_soc}% | Price: {currentPrice}¢/kWh",
+          "cooldown": 3600000
+        },
+        "timeConditions": {
+          "enabled": true,
+          "startHour": 22,
+          "endHour": 6,
+          "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        }
+      }
+    }
+  ],
+  "categories": [
+    {
+      "id": "battery",
+      "name": "Battery Alerts",
+      "description": "Notifications related to battery status and charging",
+      "icon": "🔋"
+    },
+    {
+      "id": "pricing",
+      "name": "Price Alerts",
+      "description": "Notifications about electricity pricing and optimal charging times",
+      "icon": "💰"
+    },
+    {
+      "id": "solar",
+      "name": "Solar Generation",
+      "description": "Notifications about PV power generation",
+      "icon": "☀️"
+    },
+    {
+      "id": "system",
+      "name": "System Alerts",
+      "description": "Critical system and safety notifications",
+      "icon": "⚡"
+    },
+    {
+      "id": "consumption",
+      "name": "Load Consumption",
+      "description": "Notifications about power consumption patterns",
+      "icon": "📊"
+    },
+    {
+      "id": "ai",
+      "name": "AI Decisions",
+      "description": "Notifications from the AI charging engine",
+      "icon": "🤖"
+    }
+  ]
+}

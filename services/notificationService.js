@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const telegramService = require('./telegramService');
+const ruleEvaluationService = require('./ruleEvaluationService');
 
 class NotificationService {
     constructor() {
@@ -749,6 +750,41 @@ class NotificationService {
         this.groupedNotifications.clear();
         this.suppressionRules.clear();
         console.log('All notifications cleared');
+    }
+
+    // Evaluate notification rules and process triggered rules
+    async evaluateNotificationRules(systemState, tibberData) {
+        try {
+            const triggeredRules = ruleEvaluationService.evaluateRules(systemState, tibberData);
+            
+            for (const rule of triggeredRules) {
+                const message = ruleEvaluationService.generateMessage(rule, systemState, tibberData);
+                
+                const notification = this.createNotification({
+                    type: 'rule_triggered',
+                    severity: rule.action.severity,
+                    title: rule.name,
+                    message: message,
+                    source: 'rule_engine',
+                    data: {
+                        ruleId: rule.id,
+                        ruleName: rule.name,
+                        systemState,
+                        tibberData
+                    },
+                    channels: rule.action.channels,
+                    priority: rule.priority,
+                    suppressionKey: `rule_${rule.id}`
+                });
+
+                await this.processNotification(notification);
+            }
+
+            return triggeredRules.length;
+        } catch (error) {
+            console.error('Error evaluating notification rules:', error);
+            return 0;
+        }
     }
 }
 

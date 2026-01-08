@@ -1,0 +1,75 @@
+{
+  "rules": [
+    {
+      "id": "battery_low_default",
+      "name": "Battery Low Alert",
+      "description": "Alert when battery SOC is below 20%",
+      "enabled": true,
+      "priority": "high",
+      "conditions": [
+        {
+          "parameter": "battery_soc",
+          "operator": "lt",
+          "value": 20,
+          "type": "threshold"
+        }
+      ],
+      "logic": "AND",
+      "action": {
+        "channels": ["ui"],
+        "severity": "warning",
+        "messageTemplate": "🔋 Battery Low: {battery_soc}%\nPV: {pv_power}W | Load: {load}W",
+        "cooldown": 1800000
+      },
+      "timeConditions": {
+        "enabled": false,
+        "startHour": 0,
+        "endHour": 24,
+        "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+      },
+      "statistics": {
+        "triggeredCount": 0,
+        "lastTriggered": null,
+        "lastValue": null
+      },
+      "createdAt": "2025-01-08T00:00:00Z",
+      "updatedAt": "2025-01-08T00:00:00Z"
+    },
+    {
+      "id": "battery_critical_default",
+      "name": "Battery Critical Alert",
+      "description": "Critical alert when battery SOC is below 10%",
+      "enabled": true,
+      "priority": "critical",
+      "conditions": [
+        {
+          "parameter": "battery_soc",
+          "operator": "lt",
+          "value": 10,
+          "type": "threshold"
+        }
+      ],
+      "logic": "AND",
+      "action": {
+        "channels": ["telegram", "ui"],
+        "severity": "critical",
+        "messageTemplate": "🚨 CRITICAL: Battery at {battery_soc}%!\nImmediate charging required!\nPV: {pv_power}W | Load: {load}W",
+        "cooldown": 600000
+      },
+      "timeConditions": {
+        "enabled": false,
+        "startHour": 0,
+        "endHour": 24,
+        "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+      },
+      "statistics": {
+        "triggeredCount": 0,
+        "lastTriggered": null,
+        "lastValue": null
+      },
+      "createdAt": "2025-01-08T00:00:00Z",
+      "updatedAt": "2025-01-08T00:00:00Z"
+    }
+  ],
+  "lastUpdated": "2025-01-08T00:00:00Z"
+}
