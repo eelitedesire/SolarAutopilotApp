@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { BarChart3, RefreshCw } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import AdvancedLoadingOverlay from '../components/AdvancedLoadingOverlay'
@@ -6,6 +6,7 @@ import { usePageLoading } from '../hooks/useLoading'
 
 export default function Chart() {
   const [loading, setLoading] = useState(true)
+  const [iframeKey, setIframeKey] = useState(0)
   const { isDark } = useTheme()
   const { isLoading: pageLoading } = usePageLoading(600, 1200)
 
@@ -14,28 +15,19 @@ export default function Chart() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Function to update Grafana iframes based on dark mode
-  const updateGrafanaIframes = (isDarkMode) => {
-    setTimeout(() => {
-      const iframes = document.querySelectorAll('iframe')
-      iframes.forEach(iframe => {
-        let src = iframe.src
-        src = src.replace(/([?&]theme=)(light|dark)/, '')
-        const separator = src.includes('?') ? '&' : '?'
-        const newSrc = `${src}${separator}theme=${isDarkMode ? 'dark' : 'light'}&t=${Date.now()}`
-        iframe.src = newSrc
-      })
-    }, 200)
-  }
-
-  // Update iframes when theme changes
+  // Force iframe recreation when theme changes
   useEffect(() => {
-    updateGrafanaIframes(isDark)
+    setLoading(true)
+    // Small delay to ensure theme change is processed
+    const timer = setTimeout(() => {
+      setIframeKey(prev => prev + 1)
+    }, 100)
+    return () => clearTimeout(timer)
   }, [isDark])
 
   const refreshDashboard = () => {
     setLoading(true)
-    updateGrafanaIframes(isDark)
+    setIframeKey(prev => prev + 1)
     setTimeout(() => setLoading(false), 1500)
   }
 
@@ -52,7 +44,7 @@ export default function Chart() {
             <BarChart3 className="w-6 h-6 text-black" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Solar Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Charts</h1>
             <p className="text-gray-600 dark:text-gray-400">
               Real-time monitoring and comprehensive analytics
             </p>
@@ -81,7 +73,8 @@ export default function Chart() {
         )}
         
         <iframe
-          src={`http://localhost:3001/d/solar_power_dashboard/solar-power-dashboard?orgId=1&kiosk=1&refresh=5s&theme=${isDark ? 'dark' : 'light'}`}
+          key={iframeKey}
+          src={`http://localhost:3001/d/solar_dashboard/solar_dashboard?orgId=1&kiosk=1&refresh=5s&theme=${isDark ? 'dark' : 'light'}`}
           className="w-full h-full border-0 rounded-xl shadow-lg"
           title="Solar Power Dashboard"
           onLoad={() => setLoading(false)}

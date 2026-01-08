@@ -321,6 +321,41 @@ export default function EnergyDashboard() {
         />
       </div>
 
+      {/* Time Series Charts */}
+      <div className="space-y-6">
+        {/* Battery Power Chart */}
+        <div className="card p-0 overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <Zap className="w-5 h-5 mr-2 text-blue-500" />
+              <span className="text-lg font-semibold text-gray-900 dark:text-white">Battery power</span>
+            </div>
+          </div>
+          <iframe
+            key={`battery-chart-${iframeKey}`}
+            src={`http://localhost:3001/d-solo/solar_dashboard/charts?orgId=1&refresh=5s&panelId=116&theme=${isDark ? 'dark' : 'light'}&kiosk=tv&_t=${Date.now()}`}
+            className="w-full h-96 border-0"
+            title="Battery Power Chart"
+          />
+        </div>
+
+        {/* Battery State of Charge Chart */}
+        <div className="card p-0 overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <Zap className="w-5 h-5 mr-2 text-green-500" />
+              <span className="text-lg font-semibold text-gray-900 dark:text-white">Battery state of charge</span>
+            </div>
+          </div>
+          <iframe
+            key={`soc-chart-${iframeKey}`}
+            src={`http://localhost:3001/d-solo/solar_dashboard/charts?orgId=1&refresh=5s&panelId=139&theme=${isDark ? 'dark' : 'light'}&kiosk=tv&_t=${Date.now()}`}
+            className="w-full h-96 border-0"
+            title="Battery State of Charge Chart"
+          />
+        </div>
+      </div>
+
 
 
       {/* Warnings */}
