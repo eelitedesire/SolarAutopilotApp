@@ -45,7 +45,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -54,7 +57,10 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         }
       ]
     },
@@ -63,11 +69,17 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "deb",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -83,8 +95,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^28.1.0",
-    "electron-builder": "^24.9.1",
+    "electron": "^39.2.7",
+    "electron-builder": "^24.6.4",
     "wait-on": "^7.2.0"
   }
 }

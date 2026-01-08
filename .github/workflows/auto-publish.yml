@@ -24,26 +24,32 @@ jobs:
     
     - name: Install dependencies
       run: |
-        npm install
-        cd frontend && npm install
-        cd ../desktop && npm install
+        npm install --legacy-peer-deps
+        cd frontend && npm install --legacy-peer-deps
+        cd ../desktop && npm install --legacy-peer-deps && npm audit fix --force
     
     - name: Build frontend
       run: cd frontend && npm run build
     
-    - name: Build desktop app
+    - name: Build desktop app (macOS)
+      if: matrix.os == 'macos-latest'
       run: |
         cd desktop
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          npm run dist-mac
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-          npm run dist-win
-        else
-          npm run dist-linux
-        fi
-      shell: bash
+        npm run pack
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: false
+        
+    - name: Build desktop app (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd desktop
+        npm run dist-win
+        
+    - name: Build desktop app (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd desktop
+        npm run dist-linux
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
