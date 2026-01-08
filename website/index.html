@@ -19,7 +19,8 @@
         .download-btn:hover { background: #45a049; }
         .info { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 2rem; color: white; }
         .step { background: rgba(255,255,255,0.1); margin: 1rem 0; padding: 1rem; border-radius: 10px; }
-        .step h4 { margin-bottom: 0.5rem; }
+        .step h4 { margin-bottom: 0.5rem; color: #FFD700; }
+        .highlight { background: #FFD700; color: #333; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,86 +33,72 @@
         <div class="downloads">
             <div class="download-card">
                 <h3>🪟 Windows</h3>
-                <p>Windows 10/11 (64-bit)</p>
-                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions/runs/12734088893/artifacts/1234567890" class="download-btn">Download Windows Installer</a>
-                <p style="font-size: 0.9rem; margin-top: 1rem; color: #666;">
-                    If link doesn't work:<br>
-                    1. Go to <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" style="color: #4CAF50;">GitHub Actions</a><br>
-                    2. Click the green ✅ "Auto Build and Publish" run<br>
-                    3. Scroll down to "Artifacts"<br>
-                    4. Download "windows-latest-installer"
-                </p>
+                <p>Windows 10/11 (64-bit) • ~133 MB</p>
+                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" class="download-btn">Get Windows Installer</a>
             </div>
 
             <div class="download-card">
                 <h3>🍎 macOS</h3>
-                <p>macOS 10.12+ (Intel & Apple Silicon)</p>
-                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions/runs/12734088893/artifacts/1234567891" class="download-btn">Download macOS Installer</a>
-                <p style="font-size: 0.9rem; margin-top: 1rem; color: #666;">
-                    If link doesn't work:<br>
-                    1. Go to <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" style="color: #4CAF50;">GitHub Actions</a><br>
-                    2. Click the green ✅ "Auto Build and Publish" run<br>
-                    3. Scroll down to "Artifacts"<br>
-                    4. Download "macos-latest-installer"
-                </p>
+                <p>macOS 10.12+ (Intel & Apple Silicon) • ~325 MB</p>
+                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" class="download-btn">Get macOS Installer</a>
             </div>
 
             <div class="download-card">
                 <h3>🐧 Linux</h3>
-                <p>Ubuntu/Debian & AppImage</p>
-                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions/runs/12734088893/artifacts/1234567892" class="download-btn">Download Linux Installer</a>
-                <p style="font-size: 0.9rem; margin-top: 1rem; color: #666;">
-                    If link doesn't work:<br>
-                    1. Go to <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" style="color: #4CAF50;">GitHub Actions</a><br>
-                    2. Click the green ✅ "Auto Build and Publish" run<br>
-                    3. Scroll down to "Artifacts"<br>
-                    4. Download "ubuntu-latest-installer"
-                </p>
+                <p>Ubuntu/Debian & AppImage • ~110 MB</p>
+                <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" class="download-btn">Get Linux Installer</a>
             </div>
         </div>
 
         <div class="info">
-            <h2>📋 How to Download (Step by Step)</h2>
+            <h2>📋 Download Instructions</h2>
             
             <div class="step">
                 <h4>Step 1: Go to GitHub Actions</h4>
-                <p>Click this link: <a href="https://github.com/eelitedesire/SolarAutopilotApp/actions" style="color: #4CAF50;">https://github.com/eelitedesire/SolarAutopilotApp/actions</a></p>
+                <p>Click any download button above to go to GitHub Actions</p>
             </div>
 
             <div class="step">
-                <h4>Step 2: Find a Successful Build</h4>
-                <p>Look for a run with a green ✅ checkmark (like "Auto Build and Publish")</p>
+                <h4>Step 2: Find the Right Build</h4>
+                <p>Look for <span class="highlight">"Auto Build and Publish"</span> with a green ✅ checkmark<br>
+                <strong>NOT</strong> "Simple Build" (that's just 412 KB)</p>
             </div>
 
             <div class="step">
-                <h4>Step 3: Click on the Build</h4>
-                <p>Click on the green checkmark build to open it</p>
+                <h4>Step 3: Click the Build</h4>
+                <p>Click on the <span class="highlight">"Auto Build and Publish"</span> run</p>
             </div>
 
             <div class="step">
                 <h4>Step 4: Scroll to Artifacts</h4>
-                <p>Scroll down to the bottom and look for "Artifacts" section</p>
+                <p>Scroll down to find the "Artifacts" section with these files:</p>
+                <ul style="margin-top: 0.5rem; padding-left: 2rem;">
+                    <li><strong>windows-latest-installer</strong> (~133 MB)</li>
+                    <li><strong>macos-latest-installer</strong> (~325 MB)</li>
+                    <li><strong>ubuntu-latest-installer</strong> (~110 MB)</li>
+                </ul>
             </div>
 
             <div class="step">
-                <h4>Step 5: Download Your Platform</h4>
-                <p>Click to download:
-                <br>• <strong>windows-latest-installer</strong> (for Windows)
-                <br>• <strong>macos-latest-installer</strong> (for macOS)  
-                <br>• <strong>ubuntu-latest-installer</strong> (for Linux)</p>
+                <h4>Step 5: Download & Install</h4>
+                <p>Download your platform's installer, extract the ZIP file, and run the installer</p>
             </div>
 
-            <div class="step">
-                <h4>Step 6: Install</h4>
-                <p>Extract the downloaded file and run the installer for your platform</p>
-            </div>
+            <h2 style="margin-top: 2rem;">⚠️ Important Notes</h2>
+            <ul style="margin-top: 1rem; padding-left: 2rem;">
+                <li>Make sure to click <span class="highlight">"Auto Build and Publish"</span> builds</li>
+                <li>Ignore "Simple Build" runs (those are just 412 KB web files)</li>
+                <li>Look for builds with large artifacts (100+ MB)</li>
+                <li>You need to be logged into GitHub to download artifacts</li>
+            </ul>
 
             <h2 style="margin-top: 2rem;">🚀 Features</h2>
             <ul style="margin-top: 1rem; padding-left: 2rem;">
                 <li>🤖 AI-powered battery optimization</li>
                 <li>📊 Real-time energy monitoring</li>
-                <li>💰 Dynamic pricing integration</li>
-                <li>🌱 CO2 offset tracking</li>
+                <li>💰 Dynamic pricing integration with Tibber</li>
+                <li>🌱 CO2 offset tracking and reporting</li>
+                <li>🏠 Home Assistant integration</li>
             </ul>
         </div>
     </div>
