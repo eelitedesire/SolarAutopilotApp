@@ -1,0 +1,40 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: CARBONOZ SolarAutopilot ${{ github.ref_name }}
+        body: |
+          ## 🌞 CARBONOZ SolarAutopilot Desktop App
+          
+          **Download installers:**
+          - Windows: Download from [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions) → Latest build → `windows-latest-installer`
+          - macOS: Download from [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions) → Latest build → `macos-latest-installer`  
+          - Linux: Download from [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions) → Latest build → `ubuntu-latest-installer`
+          
+          ### Features:
+          - 🤖 AI-powered battery optimization
+          - 📊 Real-time energy monitoring
+          - 💰 Dynamic pricing integration
+          - 🌱 CO2 offset tracking
+          
+          ### Installation:
+          1. Download the installer for your platform
+          2. Extract the downloaded file
+          3. Run the installer
+        generate_release_notes: true
+        make_latest: true
