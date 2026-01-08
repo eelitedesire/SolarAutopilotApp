@@ -293,11 +293,16 @@ export default function Results() {
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Carbon Intensity Results</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Environmental impact analysis and carbon footprint tracking
-          </p>
+        <div className="flex items-center mb-4 lg:mb-0">
+          <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
+            <Leaf className="w-6 h-6 text-black" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Carbon Intensity Results</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Environmental impact analysis and carbon footprint tracking
+            </p>
+          </div>
         </div>
         
         <div className="flex space-x-3 mt-4 lg:mt-0">

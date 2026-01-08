@@ -248,11 +248,11 @@ export default function Notifications() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center mb-4 lg:mb-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mr-4">
-            <Bell className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
+            <Bell className="w-6 h-6 text-black" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Notifications</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Smart Notifications</h1>
             <p className="text-gray-600 dark:text-gray-400">
               AI-powered notification system with intelligent filtering
             </p>

@@ -441,9 +441,14 @@ const Analytics = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Solar Analytics Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400">Energy analysis with proper counter reset handling</p>
+            <div className="flex items-center mb-4 lg:mb-0">
+              <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
+                <BarChart3 className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Solar Analytics Dashboard</h1>
+                <p className="text-gray-600 dark:text-gray-400">Energy analysis with proper counter reset handling</p>
+              </div>
             </div>
             <button onClick={generatePDF} className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition-colors">
               <Download className="w-4 h-4 mr-2" />

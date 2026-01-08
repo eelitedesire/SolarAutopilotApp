@@ -138,9 +138,12 @@ export default function EnergyDashboard() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-primary-600 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome to SolarAutopilot</h1>
-        <p className="text-primary-100 text-lg">
+      <div className="bg-gradient-to-r from-[#DEAF0B] to-[#c49a0a] rounded-2xl p-8 text-black">
+        <div className="flex items-center mb-4">
+          <Sun className="w-8 h-8 text-black mr-3" />
+          <h1 className="text-3xl font-bold">Welcome to SolarAutopilot</h1>
+        </div>
+        <p className="text-black/80 text-lg">
           Your solar energy dashboard for {format(new Date(), 'MMMM d, yyyy')}
         </p>
       </div>

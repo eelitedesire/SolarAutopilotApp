@@ -1,6 +1,6 @@
 {
-  "enabled": true,
-  "apiKey": "***7",
+  "enabled": false,
+  "apiKey": "bbb",
   "homeId": "",
   "country": "DE",
   "timezone": "Europe/Berlin",

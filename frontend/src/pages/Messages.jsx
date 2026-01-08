@@ -97,11 +97,11 @@ export default function Messages() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center mb-4 lg:mb-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
-            <MessageSquare className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
+            <MessageSquare className="w-6 h-6 text-black" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Incoming Messages</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Incoming Messages</h1>
             <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
               <span>Total: <strong>{messages.length}</strong></span>
               <div className="flex items-center">

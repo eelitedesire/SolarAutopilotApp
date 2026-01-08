@@ -71,6 +71,7 @@
   background-color: var(--dark-card) !important;
   border-color: var(--dark-border) !important;
   color: var(--dark-text) !important;
+  pointer-events: auto !important;
 }
 
 .dark input:focus,
@@ -78,6 +79,16 @@
 .dark textarea:focus {
   border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 1px var(--primary-color) !important;
+}
+
+/* Ensure all form elements are interactive */
+input, select, textarea, button {
+  pointer-events: auto !important;
+}
+
+/* Ensure form containers don't block interactions */
+form, .form-container {
+  pointer-events: auto !important;
 }
 
 /* Tables */

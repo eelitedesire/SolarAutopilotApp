@@ -33,11 +33,11 @@ export default function Chart() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center mb-4 lg:mb-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
-            <BarChart3 className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-[#DEAF0B] rounded-xl flex items-center justify-center mr-4">
+            <BarChart3 className="w-6 h-6 text-black" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Solar Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Charts</h1>
             <p className="text-gray-600 dark:text-gray-400">
               Real-time monitoring and historical data visualization
             </p>
