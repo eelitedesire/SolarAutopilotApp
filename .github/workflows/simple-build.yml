@@ -1,5 +1,9 @@
 name: Simple Build
 
+permissions:
+  contents: write
+  actions: read
+
 on:
   push:
     branches: [ main ]
@@ -34,12 +38,3 @@ jobs:
         path: |
           frontend/dist/
           desktop/dist/
-    
-    - name: Create simple release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: build-${{ github.run_number }}
-        name: Build ${{ github.run_number }}
-        files: frontend/dist/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
