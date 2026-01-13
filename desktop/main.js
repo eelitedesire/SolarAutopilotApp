@@ -1,10 +1,11 @@
 const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
-const { spawn } = require('child_process');
+const express = require('express');
+const cors = require('cors');
 
 let mainWindow;
-let backendProcess;
+let server;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -47,27 +48,34 @@ function createWindow() {
 }
 
 function startBackend() {
-  if (!backendProcess) {
-    const backendPath = path.join(__dirname, '../server.js');
-    backendProcess = spawn('node', [backendPath], {
-      cwd: path.join(__dirname, '..'),
-      stdio: 'pipe'
+  if (!server) {
+    const app = express();
+    app.use(cors());
+    app.use(express.json());
+    
+    // Basic API endpoints
+    app.get('/api/health', (req, res) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
-
-    backendProcess.stdout.on('data', (data) => {
-      console.log(`Backend: ${data}`);
+    
+    app.get('/api/status', (req, res) => {
+      res.json({ 
+        app: 'CARBONOZ SolarAutopilot',
+        version: '1.0.0',
+        status: 'running'
+      });
     });
-
-    backendProcess.stderr.on('data', (data) => {
-      console.error(`Backend Error: ${data}`);
+    
+    server = app.listen(3001, () => {
+      console.log('Backend server running on port 3001');
     });
   }
 }
 
 function stopBackend() {
-  if (backendProcess) {
-    backendProcess.kill();
-    backendProcess = null;
+  if (server) {
+    server.close();
+    server = null;
   }
 }
 
