@@ -24,3 +24,131 @@ Create your own account under  [[https://login.carbonoz.com](https://login.carbo
 
 
 # SolarAutopilotApp
+
+## 📦 Download & Installation
+
+### ⚡ Quick Start (Recommended)
+
+**Download pre-built installers** with all dependencies included - no building required!
+
+#### 🍎 macOS
+1. Visit [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions)
+2. Click the latest **"Universal Builds"** workflow
+3. Download **`macos-universal`** artifact
+4. Extract and open the `.dmg` file
+5. Drag to Applications folder
+6. **First launch:** Right-click → "Open" (security requirement)
+
+#### 🪟 Windows
+1. Visit [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions)
+2. Click the latest **"Universal Builds"** workflow
+3. Download **`windows-installers`** artifact
+4. Extract and run the `.exe` installer
+
+#### 🐧 Linux
+1. Visit [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions)
+2. Click the latest **"Universal Builds"** workflow
+3. Download **`linux-x64`** or **`linux-arm64-rpi`** (Raspberry Pi)
+4. Extract and run `.AppImage` or install `.deb`
+
+📖 **Detailed instructions:** See [DOWNLOAD_GUIDE.md](DOWNLOAD_GUIDE.md)
+
+---
+
+## 🚀 Features
+
+- 🤖 **AI-Powered Optimization** - Intelligent battery charging based on solar production and consumption patterns
+- 📊 **Real-Time Monitoring** - Live energy flow visualization and system status
+- 💰 **Dynamic Pricing** - Tibber integration for cost optimization
+- 🌱 **CO2 Tracking** - Monitor your environmental impact and carbon offsets
+- 📱 **Cross-Platform** - Available for macOS, Windows, Linux, and Home Assistant
+- 🔔 **Smart Notifications** - Telegram alerts for important events
+
+---
+
+## 🛠️ For Developers
+
+### Building from Source
+
+**Prerequisites:**
+- Node.js 18 or higher
+- npm
+
+**Quick Build:**
+```bash
+# Run the pre-build script
+./pre-build.sh
+
+# Then build the installer
+cd desktop
+npm run dist-mac    # macOS
+npm run dist-win    # Windows
+npm run dist-linux  # Linux
+```
+
+**Manual Build:**
+```bash
+# 1. Install root dependencies
+npm install
+
+# 2. Build frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# 3. Build desktop app
+cd desktop
+npm install
+npm run dist-mac  # or dist-win, dist-linux
+```
+
+### Development Mode
+```bash
+# Terminal 1: Start backend
+npm start
+
+# Terminal 2: Start frontend dev server
+cd frontend
+npm run dev
+
+# Terminal 3: Start Electron
+cd desktop
+npm start
+```
+
+---
+
+## ❓ Troubleshooting
+
+### App stuck at "Installing frontend dependencies..."
+**Solution:** You're running the development version. Download the pre-built installer from GitHub Actions instead.
+
+### macOS: "Cannot be verified" error
+**Solution:** Right-click the app → "Open" → "Open" (first time only)
+
+### Windows: SmartScreen warning
+**Solution:** Click "More info" → "Run anyway"
+
+### Port already in use
+**Solution:** 
+```bash
+# Find and kill process on port 3000
+lsof -ti:3000 | xargs kill -9
+```
+
+---
+
+## 📞 Support & Links
+
+- 🌐 **Website:** [carbonoz.com](https://carbonoz.com)
+- 🔐 **Login:** [login.carbonoz.com](https://login.carbonoz.com)
+- 🐛 **Issues:** [GitHub Issues](https://github.com/eelitedesire/SolarAutopilotApp/issues)
+- 📚 **Documentation:** [DOCS.md](DOCS.md)
+- 🏠 **Home Assistant Add-on:** Available in HA Add-on Store
+
+---
+
+## 📄 License
+
+Copyright © 2024 CARBONOZ. All rights reserved.
