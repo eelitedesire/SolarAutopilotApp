@@ -273,67 +273,6 @@ function checkFrontendBuild() {
   return fs.existsSync(distPath);
 }
 
-async function buildFrontend() {
-  console.log('Building frontend...');
-  updateLoadingProgress('Building React frontend...', 30);
-  
-  return new Promise((resolve, reject) => {
-    const frontendPath = path.join(PROJECT_ROOT, 'frontend');
-    
-    // First check if node_modules exists, if not install
-    const nodeModulesPath = path.join(frontendPath, 'node_modules');
-    if (!fs.existsSync(nodeModulesPath)) {
-      console.log('Installing frontend dependencies...');
-      updateLoadingProgress('Installing frontend dependencies...', 20);
-      
-      const installProcess = spawn('npm', ['install'], {
-        cwd: frontendPath,
-        shell: true,
-        stdio: 'pipe'
-      });
-      
-      installProcess.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error('Failed to install frontend dependencies'));
-          return;
-        }
-        
-        // Now build
-        buildFrontendActual(frontendPath, resolve, reject);
-      });
-    } else {
-      buildFrontendActual(frontendPath, resolve, reject);
-    }
-  });
-}
-
-function buildFrontendActual(frontendPath, resolve, reject) {
-  const buildProcess = spawn('npm', ['run', 'build'], {
-    cwd: frontendPath,
-    shell: true,
-    stdio: 'pipe'
-  });
-  
-  buildProcess.stdout.on('data', (data) => {
-    console.log(`Frontend build: ${data}`);
-  });
-  
-  buildProcess.stderr.on('data', (data) => {
-    console.error(`Frontend build error: ${data}`);
-  });
-  
-  buildProcess.on('close', (code) => {
-    if (code !== 0) {
-      reject(new Error('Frontend build failed'));
-      return;
-    }
-    
-    console.log('✅ Frontend built successfully');
-    updateLoadingProgress('✅ Frontend built', 40);
-    resolve(true);
-  });
-}
-
 async function startBackend() {
   console.log('Starting backend server...');
   updateLoadingProgress('Starting backend server...', 50);
@@ -400,17 +339,11 @@ async function initializeServices() {
     
     // Check if frontend is built
     if (!servicesRunning.frontendBuilt) {
-      console.log('Frontend not built, building now...');
-      try {
-        await buildFrontend();
-      } catch (error) {
-        showServiceError(`Failed to build frontend: ${error.message}\n\nPlease run 'npm run build' in the frontend directory manually.`);
-        return;
-      }
-    } else {
-      console.log('✅ Frontend already built');
-      updateLoadingProgress('✅ Frontend already built', 40);
+      showServiceError('Frontend not built. Please download the pre-built installer from:\n\nhttps://github.com/eelitedesire/SolarAutopilotApp/actions\n\nOr build manually:\ncd frontend && npm install && npm run build');
+      return;
     }
+    console.log('✅ Frontend already built');
+    updateLoadingProgress('✅ Frontend ready', 40);
     
     // Start backend if not running
     if (!servicesRunning.backend) {
@@ -570,26 +503,7 @@ const template = [
   {
     label: 'Services',
     submenu: [
-      {
-        label: 'Rebuild Frontend',
-        click: async () => {
-          try {
-            showLoadingScreen();
-            await buildFrontend();
-            if (backendProcess) {
-              backendProcess.kill();
-            }
-            await startBackend();
-            setTimeout(() => {
-              if (mainWindow) {
-                mainWindow.reload();
-              }
-            }, 2000);
-          } catch (error) {
-            showServiceError(`Failed to rebuild: ${error.message}`);
-          }
-        }
-      },
+
       {
         label: 'Restart Backend',
         click: async () => {
