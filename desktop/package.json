@@ -9,7 +9,7 @@
     "backend": "cd .. && npm start",
     "frontend": "cd ../frontend && npm run dev",
     "build": "npm run build-frontend && npm run build-backend",
-    "build-frontend": "cd ../frontend && npm run build",
+    "build-frontend": "cd ../frontend && npm run build && cp -r dist ../desktop/frontend-dist",
     "build-backend": "cd .. && npm install --production",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
@@ -28,32 +28,15 @@
       "main.js",
       "preload.js",
       "assets/**/*",
-      "../frontend/dist/**/*",
       "../server.js",
       "../package.json",
-      "../node_modules/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "../server.js",
-        "to": "server.js"
-      },
-      {
-        "from": "../services",
-        "to": "services"
-      },
-      {
-        "from": "../routes",
-        "to": "routes"
-      },
-      {
-        "from": "../ai",
-        "to": "ai"
-      },
-      {
-        "from": "../utils",
-        "to": "utils"
-      }
+      "../node_modules/**/*",
+      "../frontend/dist/**/*",
+      "../services/**/*",
+      "../routes/**/*",
+      "../ai/**/*",
+      "../utils/**/*",
+      "../data/**/*"
     ],
     "mac": {
       "category": "public.app-category.utilities",

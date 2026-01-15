@@ -23,7 +23,13 @@ jobs:
       run: |
         npm install --force
         cd frontend && npm install --force && npm run build
-        cd ../desktop && npm install --force
+        cd ..
+    
+    - name: Copy frontend build
+      run: cp -r frontend/dist desktop/frontend-dist
+    
+    - name: Install desktop dependencies
+      run: cd desktop && npm install --force
     
     - name: Build universal macOS
       run: |
@@ -50,7 +56,13 @@ jobs:
       run: |
         npm install --force
         cd frontend && npm install --force && npm run build
-        cd ../desktop && npm install --force
+        cd ..
+    
+    - name: Copy frontend build
+      run: xcopy /E /I frontend\dist desktop\frontend-dist
+    
+    - name: Install desktop dependencies
+      run: cd desktop && npm install --force
     
     - name: Build Windows
       run: |
@@ -79,7 +91,13 @@ jobs:
       run: |
         npm install --force
         cd frontend && npm install --force && npm run build
-        cd ../desktop && npm install --force
+        cd ..
+    
+    - name: Copy frontend build
+      run: cp -r frontend/dist desktop/frontend-dist
+    
+    - name: Install desktop dependencies
+      run: cd desktop && npm install --force
     
     - name: Build Linux x64
       run: |
@@ -106,7 +124,13 @@ jobs:
       run: |
         npm install --force
         cd frontend && npm install --force && npm run build
-        cd ../desktop && npm install --force
+        cd ..
+    
+    - name: Copy frontend build
+      run: cp -r frontend/dist desktop/frontend-dist
+    
+    - name: Install desktop dependencies
+      run: cd desktop && npm install --force
     
     - name: Build Linux ARM64 (Raspberry Pi)
       run: |
