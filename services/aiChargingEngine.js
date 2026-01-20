@@ -273,8 +273,8 @@ class AIChargingEngine {
         strategy: academicMetrics.strategy || 'unknown',
         expectedImprovement: academicMetrics.expectedImprovement || 0,
         batterySize: this.config.batteryCapacity,
-        priceVsThreshold: tibberData.currentPrice ? 
-          ((tibberData.currentPrice / this.academicParams.optimalChargeThreshold - 1) * 100).toFixed(1) + '%' : 
+        priceVsAverage: tibberData.currentPrice && tibberData.averagePrice ? 
+          ((tibberData.currentPrice / tibberData.averagePrice - 1) * 100).toFixed(1) + '%' : 
           'N/A'
       }
     };

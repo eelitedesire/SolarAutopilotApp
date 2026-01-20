@@ -5,6 +5,8 @@ const fs = require('fs');
 
 let mainWindow;
 let backendProcess;
+let dockerStarted = false;
+let dockerManager;
 
 // Determine if app is packaged
 const isPackaged = app.isPackaged;
@@ -452,7 +454,50 @@ async function initializeServices() {
     console.log('Running mode:', isPackaged ? 'PACKAGED' : 'DEVELOPMENT');
     console.log('Project root:', PROJECT_ROOT);
     
-    updateLoadingProgress('Checking services...', 5);
+    updateLoadingProgress('Checking Docker...', 5);
+    
+    // Load docker manager when needed
+    if (!dockerManager) {
+      dockerManager = require('./docker-manager');
+    }
+    
+    // Start Docker containers first
+    if (!dockerStarted) {
+      const dockerStatus = await dockerManager.getStatus();
+      
+      if (dockerStatus.dockerInstalled) {
+        console.log('🐳 Docker detected, starting containers...');
+        updateLoadingProgress('Starting InfluxDB and Grafana...', 15);
+        
+        const result = await dockerManager.startAll();
+        
+        if (result.success) {
+          console.log('✅ Docker containers started');
+          updateLoadingProgress('✅ Docker containers ready', 30);
+          dockerStarted = true;
+          
+          // Wait for containers to be fully ready and initialize database
+          await new Promise(resolve => setTimeout(resolve, 8000));
+          
+          // Initialize InfluxDB database
+          try {
+            console.log('🔧 Initializing InfluxDB database...');
+            await dockerManager.initializeInfluxDB();
+            console.log('✅ InfluxDB database initialized');
+          } catch (initError) {
+            console.warn('⚠️  InfluxDB initialization failed:', initError.message);
+          }
+        } else {
+          console.warn('⚠️  Docker containers failed to start:', result.error);
+          updateLoadingProgress('⚠️  Docker containers failed, continuing...', 30);
+        }
+      } else {
+        console.warn('⚠️  Docker not installed - InfluxDB and Grafana must be installed manually');
+        updateLoadingProgress('⚠️  Docker not found, continuing...', 30);
+      }
+    }
+    
+    updateLoadingProgress('Checking services...', 35);
     
     const servicesRunning = await checkExistingServices();
     
@@ -600,6 +645,9 @@ app.on('window-all-closed', () => {
     console.log('Stopping backend process...');
     backendProcess.kill();
   }
+  
+  // Note: We don't stop Docker containers on app close
+  // They will keep running for next app launch
   
   if (process.platform !== 'darwin') {
     app.quit();

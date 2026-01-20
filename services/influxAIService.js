@@ -12,7 +12,7 @@ class InfluxAIService {
   initializeInflux() {
     try {
       this.influx = new Influx.InfluxDB({
-        host: process.env.INFLUXDB_HOST || 'localhost',
+        host: process.env.INFLUXDB_HOST || '127.0.0.1',
         port: process.env.INFLUXDB_PORT || 8087,
         database: process.env.INFLUXDB_DATABASE || 'solarautopilot',
         protocol: 'http',

@@ -28,6 +28,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "docker-manager.js",
       "assets/**/*"
     ],
     "extraResources": [

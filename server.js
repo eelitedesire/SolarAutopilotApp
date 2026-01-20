@@ -344,7 +344,7 @@ const API_REQUEST_INTERVAL = 500; // 500ms between API requests for better respo
 
 // InfluxDB configuration
 const influxConfig = {
-  host: process.env.INFLUXDB_HOST || 'localhost',
+  host: process.env.INFLUXDB_HOST || '127.0.0.1',
   port: process.env.INFLUXDB_PORT || 8087,
   database: process.env.INFLUXDB_DATABASE || 'solarautopilot',
   protocol: 'http',

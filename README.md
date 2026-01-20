@@ -31,6 +31,11 @@ Create your own account under  [[https://login.carbonoz.com](https://login.carbo
 
 **Download pre-built installers** with all dependencies included - no building required!
 
+**NEW: Automatic Docker Integration** 🐳
+- If you have Docker installed, the app automatically manages InfluxDB and Grafana containers
+- No manual database setup needed!
+- See [DOCKER_INTEGRATION.md](DOCKER_INTEGRATION.md) for details
+
 #### 🍎 macOS
 1. Visit [GitHub Actions](https://github.com/eelitedesire/SolarAutopilotApp/actions)
 2. Click the latest **"Universal Builds"** workflow
