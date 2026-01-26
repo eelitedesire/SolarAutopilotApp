@@ -30,7 +30,17 @@ function App() {
 
   useEffect(() => {
     checkSetupStatus()
-  }, [isConfigured])
+    
+    // Force stop loading after 10 seconds as fallback
+    const forceLoadTimeout = setTimeout(() => {
+      if (loading || configLoading) {
+        console.warn('Force stopping loading after timeout')
+        setLoading(false)
+      }
+    }, 10000)
+    
+    return () => clearTimeout(forceLoadTimeout)
+  }, [isConfigured, loading, configLoading])
 
   const checkSetupStatus = () => {
     if (!configLoading) {
