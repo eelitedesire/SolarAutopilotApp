@@ -6,7 +6,7 @@ class DockerManager {
   constructor() {
     this.containers = {
       influxdb: {
-        name: 'solarautopilot-influxdb',
+        name: 'influxdb',
         image: 'influxdb:1.8',
         ports: ['8087:8086'],
         env: [
@@ -27,9 +27,13 @@ class DockerManager {
           'GF_AUTH_ANONYMOUS_ORG_ROLE=Admin',
           'GF_AUTH_BASIC_ENABLED=false',
           'GF_AUTH_DISABLE_LOGIN_FORM=true',
-          'GF_SECURITY_ALLOW_EMBEDDING=true'
+          'GF_SECURITY_ALLOW_EMBEDDING=true',
+          'GF_PATHS_PROVISIONING=/etc/grafana/provisioning'
         ],
-        volumes: ['solarautopilot-grafana-data:/var/lib/grafana']
+        volumes: [
+          'solarautopilot-grafana-data:/var/lib/grafana',
+          `${process.cwd()}/../grafana/provisioning:/etc/grafana/provisioning`
+        ]
       }
     };
   }
@@ -62,20 +66,20 @@ class DockerManager {
     }
 
     try {
-      // Check if container exists but stopped
+      // Create network if it doesn't exist
+      await execAsync('docker network create solarautopilot-network 2>/dev/null || true');
+      
       const { stdout } = await execAsync(`docker ps -a --filter "name=${config.name}" --format "{{.Names}}"`);
       
       if (stdout.trim() === config.name) {
-        // Container exists, just start it
         await execAsync(`docker start ${config.name}`);
         console.log(`✅ Started existing ${service} container`);
       } else {
-        // Create new container
         const envFlags = config.env.map(e => `-e ${e}`).join(' ');
         const portFlags = config.ports.map(p => `-p ${p}`).join(' ');
         const volumeFlags = config.volumes.map(v => `-v ${v}`).join(' ');
         
-        const cmd = `docker run -d --name ${config.name} ${portFlags} ${envFlags} ${volumeFlags} --restart unless-stopped --network bridge ${config.image}`;
+        const cmd = `docker run -d --name ${config.name} ${portFlags} ${envFlags} ${volumeFlags} --restart unless-stopped --network solarautopilot-network ${config.image}`;
         await execAsync(cmd);
         console.log(`✅ Created and started ${service} container`);
       }
